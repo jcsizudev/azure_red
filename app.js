@@ -13,7 +13,15 @@ var server = http.createServer(app);
 
 // Create the settings object - see default settings.js file for other options
 var settings = {
-    httpAdminRoot:"/",
+    httpAdminRoot:"/adminEdit",
+    adminAuth: {
+        type: "credentials",
+        users: [{
+            username: "admin",
+            password: "$2a$08$JpU4rRR5QxBK40/Yl5/e.uj9kAWCuvnkEV5QHQC49QYw.dW4nE4.2",
+            permissions: "*"
+        }]
+    },
     httpNodeRoot: "/",
     userDir:".",
     functionGlobalContext: { }    // enables global context
