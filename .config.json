@@ -936,6 +936,33 @@
      "file": "D:\\home\\site\\wwwroot\\node_modules\\node-red-node-twitter\\27-twitter.js"
     }
    }
+  },
+  "node-red-contrib-mssql-ps": {
+   "name": "node-red-contrib-mssql-ps",
+   "version": "1.1.1",
+   "local": false,
+   "nodes": {
+    "node-red-contrib-mssql-ps": {
+     "name": "node-red-contrib-mssql-ps",
+     "types": [
+      "node-red-contrib-mssql-ps"
+     ],
+     "enabled": true,
+     "local": false,
+     "module": "node-red-contrib-mssql-ps",
+     "file": "D:\\home\\site\\wwwroot\\node_modules\\node-red-contrib-mssql-ps\\mssql-ps\\mssql-ps.js"
+    },
+    "mssql-ps-serverconf": {
+     "name": "mssql-ps-serverconf",
+     "types": [
+      "mssql-ps-serverconf"
+     ],
+     "enabled": true,
+     "local": false,
+     "module": "node-red-contrib-mssql-ps",
+     "file": "D:\\home\\site\\wwwroot\\node_modules\\node-red-contrib-mssql-ps\\mssql-ps\\mssql-ps-serverconf.js"
+    }
+   }
   }
  },
  "_credentialSecret": "f2b27de28b053094536aaad2a83061f8f8c98540686ecd5cb847420484df3014"
