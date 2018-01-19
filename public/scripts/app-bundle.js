@@ -50,7 +50,8 @@ define('contact-list',['exports', './web-api', 'aurelia-framework'], function (e
 
       this.api = api;
       this.contacts = [];
-      this.message = 'Contact List!';
+      this.activePage = 1;
+      this.maxPage = 6;
     }
 
     ContactList.prototype.created = function created() {
@@ -172,6 +173,6 @@ define('resources/index',["exports"], function (exports) {
   exports.configure = configure;
   function configure(config) {}
 });
-define('text!app.html', ['module'], function(module) { module.exports = "<template><require from=\"materialize-css/css/materialize.css\"></require><h1 class=\"blue-text text-darken-4\">${message}</h1><div><router-view></router-view></div></template>"; });
-define('text!contact-list.html', ['module'], function(module) { module.exports = "<template><div>とりあえず${message} </div><div><ul><li repeat.for=\"contact of contacts\"><div>${contact.MCNTCT_ContactCD} : ${contact.MCNTCT_ContactName}</div></li></ul></div></template>"; });
+define('text!app.html', ['module'], function(module) { module.exports = "<template><require from=\"materialize-css/css/materialize.css\"></require><md-colors md-primary-color=\"#ee6e73\" md-accent-color=\"#2bbbad\" md-error-color=\"#FF0000\"></md-colors><div class=\"container\"><router-view></router-view></div></template>"; });
+define('text!contact-list.html', ['module'], function(module) { module.exports = "<template><div class=\"row\"><div class=\"col s12\"><div class=\"card-panel\"><md-collection><md-collection-header class=\"red accent-2 white-text\"><h5>連絡先一覧</h5></md-collection-header><md-collection-item repeat.for=\"contact of contacts\"> ${contact.MCNTCT_ContactCD} : ${contact.MCNTCT_ContactName} <div class=\"secondary-content\"><i class=\"material-icons\">mode_edit</i></div></md-collection-item></md-collection><div style=\"text-align:right\"><a md-button=\"floating: true; large: true; pulse.bind: pulse;\" md-waves=\"color: light; circle: true;\"><i class=\"large material-icons\">mode_edit</i></a></div></div></div></div><div class=\"row\" style=\"text-align:center\"><div class=\"col s12\"><md-pagination md-pages.bind=\"maxPage\" md-active-page.bind=\"activePage\"></md-pagination></div></div></template>"; });
 //# sourceMappingURL=app-bundle.js.map
