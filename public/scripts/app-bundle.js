@@ -51,20 +51,43 @@ define('contact-list',['exports', './web-api', 'aurelia-framework'], function (e
       this.api = api;
       this.contacts = [];
       this.activePage = 1;
-      this.maxPage = 6;
+      this.maxPage = 1;
+      this.lineCount = 8;
+      this.onCreating = false;
     }
 
-    ContactList.prototype.created = function created() {
+    ContactList.prototype.showList = function showList() {
       var _this = this;
 
-      this.api.getContactList().then(function (contacts) {
+      this.api.getContactList(this.activePage, this.lineCount).then(function (contacts) {
         log.info('Success!');
         log.info(contacts);
         _this.contacts = contacts;
+        var allLineCount = contacts[0].LineCount;
+        _this.maxPage = Math.floor(allLineCount / _this.lineCount);
+        if (allLineCount % _this.lineCount !== 0) {
+          _this.maxPage += 1;
+        }
       }).catch(function (error) {
         log.info('Error!');
         log.info(error);
       });
+    };
+
+    ContactList.prototype.created = function created() {
+      this.onCreating = true;
+      log.info('created!');
+      this.showList();
+    };
+
+    ContactList.prototype.onPageChanged = function onPageChanged(e) {
+      log.info('page changed ' + e.detail);
+      if (this.onCreating) {
+        this.onCreating = false;
+      } else {
+        this.activePage = e.detail;
+        this.showList();
+      }
     };
 
     return ContactList;
@@ -140,11 +163,14 @@ define('web-api',['exports', 'aurelia-framework'], function (exports, _aureliaFr
       this.isRequesting = false;
     }
 
-    WebAPI.prototype.getContactList = function getContactList() {
+    WebAPI.prototype.getContactList = function getContactList(page, lineCount) {
       var _this = this;
 
       this.isRequesting = true;
-      return fetch('https://izufr01.azurewebsites.net/api/SA21/01/0/10').then(function (response) {
+      var strUrl = 'https://izufr01.azurewebsites.net/api/SA21/01/';
+      var skipRows = (page - 1) * lineCount;
+      strUrl += skipRows + '/' + lineCount;
+      return fetch(strUrl).then(function (response) {
         _this.isRequesting = false;
         log.info('Success!');
         log.info(response);
@@ -174,5 +200,5 @@ define('resources/index',["exports"], function (exports) {
   function configure(config) {}
 });
 define('text!app.html', ['module'], function(module) { module.exports = "<template><require from=\"materialize-css/css/materialize.css\"></require><md-colors md-primary-color=\"#ee6e73\" md-accent-color=\"#2bbbad\" md-error-color=\"#FF0000\"></md-colors><div class=\"container\"><router-view></router-view></div></template>"; });
-define('text!contact-list.html', ['module'], function(module) { module.exports = "<template><div class=\"row\"><div class=\"col s12\"><div class=\"card-panel\"><md-collection><md-collection-header class=\"red accent-2 white-text\"><h5>連絡先一覧</h5></md-collection-header><md-collection-item repeat.for=\"contact of contacts\"> ${contact.MCNTCT_ContactCD} : ${contact.MCNTCT_ContactName} <div class=\"secondary-content\"><i class=\"material-icons\">mode_edit</i></div></md-collection-item></md-collection><div style=\"text-align:right\"><a md-button=\"floating: true; large: true; pulse.bind: pulse;\" md-waves=\"color: light; circle: true;\"><i class=\"large material-icons\">mode_edit</i></a></div></div></div></div><div class=\"row\" style=\"text-align:center\"><div class=\"col s12\"><md-pagination md-pages.bind=\"maxPage\" md-active-page.bind=\"activePage\"></md-pagination></div></div></template>"; });
+define('text!contact-list.html', ['module'], function(module) { module.exports = "<template><div class=\"row\"><div class=\"col s12\"><div class=\"card-panel\"><md-collection><md-collection-header class=\"red accent-2 white-text\"><h5>連絡先一覧</h5></md-collection-header><md-collection-item repeat.for=\"contact of contacts\"> ${contact.MCNTCT_ContactCD} : ${contact.MCNTCT_ContactName} <div class=\"secondary-content\"><i class=\"material-icons\">mode_edit</i></div></md-collection-item></md-collection><div style=\"text-align:right\"><a md-button=\"floating: true; large: true; pulse.bind: pulse;\" md-waves=\"color: light; circle: true;\"><i class=\"large material-icons\">mode_edit</i></a></div></div></div></div><div class=\"row\" style=\"text-align:center\"><div class=\"col s12\"><md-pagination md-on-page-changed.delegate=\"onPageChanged($event)\" md-pages.bind=\"maxPage\" md-active-page.bind=\"activePage\"></md-pagination></div></div></template>"; });
 //# sourceMappingURL=app-bundle.js.map
