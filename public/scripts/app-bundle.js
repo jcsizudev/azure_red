@@ -52,7 +52,7 @@ define('contact-list',['exports', './web-api', 'aurelia-framework'], function (e
       this.contacts = [];
       this.activePage = 1;
       this.maxPage = 1;
-      this.lineCount = 8;
+      this.lineCount = 10;
       this.onCreating = false;
     }
 
@@ -199,6 +199,7 @@ define('resources/index',["exports"], function (exports) {
   exports.configure = configure;
   function configure(config) {}
 });
-define('text!app.html', ['module'], function(module) { module.exports = "<template><require from=\"materialize-css/css/materialize.css\"></require><md-colors md-primary-color=\"#ee6e73\" md-accent-color=\"#2bbbad\" md-error-color=\"#FF0000\"></md-colors><div class=\"container\"><router-view></router-view></div></template>"; });
-define('text!contact-list.html', ['module'], function(module) { module.exports = "<template><div class=\"row\"><div class=\"col s12\"><div class=\"card-panel\"><md-collection><md-collection-header class=\"red accent-2 white-text\"><h5>連絡先一覧</h5></md-collection-header><md-collection-item repeat.for=\"contact of contacts\"> ${contact.MCNTCT_ContactCD} : ${contact.MCNTCT_ContactName} <div class=\"secondary-content\"><i class=\"material-icons\">mode_edit</i></div></md-collection-item></md-collection><div style=\"text-align:right\"><a md-button=\"floating: true; large: true; pulse.bind: pulse;\" md-waves=\"color: light; circle: true;\"><i class=\"large material-icons\">mode_edit</i></a></div></div></div></div><div class=\"row\" style=\"text-align:center\"><div class=\"col s12\"><md-pagination md-on-page-changed.delegate=\"onPageChanged($event)\" md-pages.bind=\"maxPage\" md-active-page.bind=\"activePage\"></md-pagination></div></div></template>"; });
+define('text!app.html', ['module'], function(module) { module.exports = "<template><require from=\"materialize-css/css/materialize.css\"></require><require from=\"./styles.css\"></require><md-colors md-primary-color=\"#ee6e73\" md-accent-color=\"#2bbbad\" md-error-color=\"#FF0000\"></md-colors><div class=\"container\"><router-view></router-view></div></template>"; });
+define('text!styles.css', ['module'], function(module) { module.exports = ".fullWnd {\n  width: 100vw;\n  height: 100vh;\n}\n\n.collection .collection-item {\n  background-color: #fff;\n  line-height: 2.5rem;\n  padding: 10px 20px;\n  margin: 0;\n  border-bottom: 1px solid #e0e0e0;\n}\n"; });
+define('text!contact-list.html', ['module'], function(module) { module.exports = "<template><div class=\"row\"><div class=\"col s12\"><md-collection><md-collection-header class=\"red accent-2 white-text\"><h5>連絡先一覧</h5></md-collection-header><md-collection-item repeat.for=\"contact of contacts\"> ${contact.MCNTCT_ContactCD} : ${contact.MCNTCT_ContactName} <div class=\"secondary-content\"><a md-button=\"floating: true; tiny: true; pulse.bind: pulse;\" md-waves=\"color: light; circle: true;\" onclick='alert($(this).parent(\"div\").children(\"input\").val())'><i class=\"material-icons\">edit</i> </a><input type=\"hidden\" id=\"hidIndex\" value=\"${$index}\"></div></md-collection-item></md-collection><div style=\"text-align:right\"><a md-button=\"floating: true; large: true; pulse.bind: pulse;\" md-waves=\"color: light; circle: true;\" onclick='alert(\"OK\")'><i class=\"large material-icons\">add</i></a></div></div></div><div class=\"row\" style=\"text-align:center\"><div class=\"col s12\"><md-pagination md-on-page-changed.delegate=\"onPageChanged($event)\" md-pages.bind=\"maxPage\" md-active-page.bind=\"activePage\"></md-pagination></div></div></template>"; });
 //# sourceMappingURL=app-bundle.js.map
