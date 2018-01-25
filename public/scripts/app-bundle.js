@@ -20,7 +20,7 @@ define('app',['exports'], function (exports) {
 
     App.prototype.configureRouter = function configureRouter(config, router) {
       config.title = 'Contacts';
-      config.map([{ route: '', moduleId: 'contact-list', title: 'List' }]);
+      config.map([{ route: '', moduleId: 'contact-list', name: 'contactList', title: 'List' }, { route: 'contactNew/', moduleId: 'contact-new', name: 'contactNew' }]);
     };
 
     return App;
@@ -93,6 +93,60 @@ define('contact-list',['exports', './web-api', 'aurelia-framework'], function (e
     return ContactList;
   }()) || _class);
 });
+define('contact-new',['exports', './web-api', 'aurelia-framework', 'aurelia-validation', 'aurelia-materialize-bridge'], function (exports, _webApi, _aureliaFramework, _aureliaValidation, _aureliaMaterializeBridge) {
+  'use strict';
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.ContactNew = undefined;
+
+  function _classCallCheck(instance, Constructor) {
+    if (!(instance instanceof Constructor)) {
+      throw new TypeError("Cannot call a class as a function");
+    }
+  }
+
+  var _dec, _class;
+
+  var log = _aureliaFramework.LogManager.getLogger('contact-list');
+
+  var ContactNew = exports.ContactNew = (_dec = (0, _aureliaFramework.inject)(_webApi.WebAPI, _aureliaFramework.NewInstance.of(_aureliaValidation.ValidationController)), _dec(_class = function () {
+    function ContactNew(api, controller) {
+      _classCallCheck(this, ContactNew);
+
+      this.rules = _aureliaValidation.ValidationRules.ensure('contactName').required().withMessage('連絡先名称は必須です').ensure('orderDisplay').required().withMessage('表示順は必須です').matches(/[0-9]+/).withMessage('数値を指定して下さい').rules;
+
+      this.api = api;
+      this.controller = controller;
+      this.controller.addRenderer(new _aureliaMaterializeBridge.MaterializeFormValidationRenderer());
+
+      this.contactName = '';
+      this.orderDisplay = '';
+      this.note = '';
+      this.activeFlg = true;
+      log.info('ContactNew-constructor');
+    }
+
+    ContactNew.prototype.validateModel = function validateModel() {
+      var _this = this;
+
+      this.controller.validate().then(function (v) {
+        if (v.valid) {
+          _this.message = 'All is good!';
+        } else {
+          _this.message = 'You have errors!';
+        }
+      });
+    };
+
+    ContactNew.prototype.created = function created() {
+      log.info('ContactNew-created');
+    };
+
+    return ContactNew;
+  }()) || _class);
+});
 define('environment',["exports"], function (exports) {
   "use strict";
 
@@ -134,6 +188,7 @@ define('main',['exports', './environment'], function (exports, _environment) {
     aurelia.use.plugin('aurelia-materialize-bridge', function (b) {
       return b.useAll();
     });
+    aurelia.use.plugin('aurelia-validation');
 
     aurelia.start().then(function () {
       return aurelia.setRoot();
@@ -187,6 +242,28 @@ define('web-api',['exports', 'aurelia-framework'], function (exports, _aureliaFr
       });
     };
 
+    WebAPI.prototype.addContact = function addContact(postData) {
+      var _this2 = this;
+
+      this.isRequesting = true;
+      var strUrl = 'https://izufr01.azurewebsites.net/api/SA21/01/';
+      return fetch(strUrl, { method: 'POST', body: postData }).then(function (response) {
+        _this2.isRequesting = false;
+        log.info('Success!');
+        log.info(response);
+        if (response.status !== 200) {
+          rejected(response);
+        } else {
+          return response.json();
+        }
+      }).catch(function (error) {
+        _this2.isRequesting = false;
+        log.info('Error!');
+        log.info(response);
+        return error.json();
+      });
+    };
+
     return WebAPI;
   }();
 });
@@ -199,7 +276,8 @@ define('resources/index',["exports"], function (exports) {
   exports.configure = configure;
   function configure(config) {}
 });
-define('text!styles.css', ['module'], function(module) { module.exports = ".padl {\n  margin-left: 1rem;\n}\n\n.collection .collection-item {\n  background-color: #fff;\n  line-height: 2.5rem;\n  padding: 10px 20px;\n  margin: 0;\n  border-bottom: 1px solid #e0e0e0;\n}\n"; });
 define('text!app.html', ['module'], function(module) { module.exports = "<template><require from=\"materialize-css/css/materialize.css\"></require><require from=\"./styles.css\"></require><md-colors md-primary-color=\"#ee6e73\" md-accent-color=\"#2bbbad\" md-error-color=\"#FF0000\"></md-colors><div class=\"container\"><router-view></router-view></div></template>"; });
-define('text!contact-list.html', ['module'], function(module) { module.exports = "<template><md-navbar><a href=\"#\" class=\"brand-logo left\"><span class=\"padl\">連絡先一覧</span></a><ul class=\"hide-on-med-and-down right\"><li md-waves><a>About</a></li><li md-waves><a>Installation</a></li><li md-waves><a>Project Status</a></li></ul></md-navbar><div class=\"row\"><div class=\"col s12\"><md-collection><md-collection-item repeat.for=\"contact of contacts\"> ${contact.MCNTCT_ContactCD} : ${contact.MCNTCT_ContactName} <div class=\"secondary-content\"><a md-button=\"floating: true; tiny: true; pulse.bind: pulse;\" md-waves=\"color: light; circle: true;\" onclick='alert($(this).parent(\"div\").children(\"input\").val())'><i class=\"material-icons\">edit</i> </a><input type=\"hidden\" id=\"hidIndex\" value=\"${$index}\"></div></md-collection-item></md-collection><div style=\"text-align:right\"><a md-button=\"floating: true; large: true; pulse.bind: pulse;\" md-waves=\"color: light; circle: true;\" onclick='alert(\"OK\")'><i class=\"large material-icons\">add</i></a></div></div></div><div class=\"row\" style=\"text-align:center\"><div class=\"col s12\"><md-pagination md-on-page-changed.delegate=\"onPageChanged($event)\" md-pages.bind=\"maxPage\" md-active-page.bind=\"activePage\"></md-pagination></div></div></template>"; });
+define('text!styles.css', ['module'], function(module) { module.exports = ".padl {\n  margin-left: 1rem;\n}\n\n.collection .collection-item {\n  background-color: #fff;\n  line-height: 2.5rem;\n  padding: 10px 20px;\n  margin: 0;\n  border-bottom: 1px solid #e0e0e0;\n}\n"; });
+define('text!contact-list.html', ['module'], function(module) { module.exports = "<template><md-navbar><a href=\"#\" class=\"brand-logo left\"><span class=\"padl\">連絡先一覧</span></a><ul class=\"hide-on-med-and-down right\"><li md-waves><a>About</a></li><li md-waves><a>Installation</a></li><li md-waves><a>Project Status</a></li></ul></md-navbar><div class=\"row\"><div class=\"col s12\"><md-collection><md-collection-item repeat.for=\"contact of contacts\"> ${contact.MCNTCT_ContactCD} : ${contact.MCNTCT_ContactName} <div class=\"secondary-content\"><a md-button=\"floating: true; tiny: true; pulse.bind: pulse;\" md-waves=\"color: light; circle: true;\" onclick='alert($(this).parent(\"div\").children(\"input\").val())'><i class=\"material-icons\">edit</i> </a><input type=\"hidden\" id=\"hidIndex\" value=\"${$index}\"></div></md-collection-item></md-collection><div style=\"text-align:right\"><a md-button=\"floating: true; large: true; pulse.bind: pulse;\" md-waves=\"color: light; circle: true;\" route-href=\"route: contactNew;\"><i class=\"large material-icons\">add</i></a></div></div></div><div class=\"row\" style=\"text-align:center\"><div class=\"col s12\"><md-pagination md-on-page-changed.delegate=\"onPageChanged($event)\" md-pages.bind=\"maxPage\" md-active-page.bind=\"activePage\"></md-pagination></div></div></template>"; });
+define('text!contact-new.html', ['module'], function(module) { module.exports = "<template><md-navbar><a href=\"#\" class=\"brand-logo left\"><span class=\"padl\">連絡先登録</span></a><ul class=\"hide-on-med-and-down right\"><li md-waves><a>About</a></li><li md-waves><a>Installation</a></li><li md-waves><a>Project Status</a></li></ul></md-navbar><div class=\"row\"><div class=\"col s12\"><md-input md-label=\"連絡先名称\" md-validate=\"true\" md-value.bind=\"contactName & validate:rules\"><i md-prefix class=\"material-icons\">account_circle</i></md-input><md-input md-label=\"表示順\" md-validate=\"true\" md-value.bind=\"orderDisplay & validate:rules\"><i md-prefix class=\"material-icons\">sort</i></md-input><md-input md-label=\"備考\" md-value.bind=\"note\"><i md-prefix class=\"material-icons\">note</i></md-input><md-checkbox md-checked.bind=\"activeFlg\">有効</md-checkbox></div></div><div class=\"row center\"><div class=\"col s6\"><a md-button=\"floating: true; large: true; pulse.bind: pulse;\" md-waves=\"color: light; circle: true;\" route-href=\"route: contactList;\"><i class=\"large material-icons\">arrow_back</i></a></div><div class=\"col s6\"><a md-button=\"floating: true; large: true; pulse.bind: pulse;\" md-waves=\"color: light; circle: true;\" click.delegate=\"validateModel()\"><i class=\"large material-icons\">cloud_upload</i></a></div></div></template>"; });
 //# sourceMappingURL=app-bundle.js.map
