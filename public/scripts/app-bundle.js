@@ -53,6 +53,7 @@ define('contact-list',['exports', './web-api', 'aurelia-framework'], function (e
       this.activePage = 1;
       this.maxPage = 1;
       this.lineCount = 10;
+      this.selectedRow = -1;
       this.onCreating = false;
     }
 
@@ -88,6 +89,11 @@ define('contact-list',['exports', './web-api', 'aurelia-framework'], function (e
         this.activePage = e.detail;
         this.showList();
       }
+      this.selectedRow = -1;
+    };
+
+    ContactList.prototype.onClickRow = function onClickRow(idx) {
+      this.selectedRow = idx;
     };
 
     return ContactList;
@@ -277,7 +283,7 @@ define('resources/index',["exports"], function (exports) {
   function configure(config) {}
 });
 define('text!app.html', ['module'], function(module) { module.exports = "<template><require from=\"materialize-css/css/materialize.css\"></require><require from=\"./styles.css\"></require><md-colors md-primary-color=\"#ee6e73\" md-accent-color=\"#2bbbad\" md-error-color=\"#FF0000\"></md-colors><div class=\"container\"><router-view></router-view></div></template>"; });
-define('text!styles.css', ['module'], function(module) { module.exports = ".padl {\n  margin-left: 1rem;\n}\n\n.collection .collection-item {\n  background-color: #fff;\n  line-height: 2.5rem;\n  padding: 10px 20px;\n  margin: 0;\n  border-bottom: 1px solid #e0e0e0;\n}\n"; });
-define('text!contact-list.html', ['module'], function(module) { module.exports = "<template><md-navbar><a href=\"#\" class=\"brand-logo left\"><span class=\"padl\">連絡先一覧</span></a><ul class=\"hide-on-med-and-down right\"><li md-waves><a>About</a></li><li md-waves><a>Installation</a></li><li md-waves><a>Project Status</a></li></ul></md-navbar><div class=\"row\"><div class=\"col s12\"><md-collection><md-collection-item repeat.for=\"contact of contacts\"> ${contact.MCNTCT_ContactCD} : ${contact.MCNTCT_ContactName} <div class=\"secondary-content\"><a md-button=\"floating: true; tiny: true; pulse.bind: pulse;\" md-waves=\"color: light; circle: true;\" onclick='alert($(this).parent(\"div\").children(\"input\").val())'><i class=\"material-icons\">edit</i> </a><input type=\"hidden\" id=\"hidIndex\" value=\"${$index}\"></div></md-collection-item></md-collection><div style=\"text-align:right\"><a md-button=\"floating: true; large: true; pulse.bind: pulse;\" md-waves=\"color: light; circle: true;\" route-href=\"route: contactNew;\"><i class=\"large material-icons\">add</i></a></div></div></div><div class=\"row\" style=\"text-align:center\"><div class=\"col s12\"><md-pagination md-on-page-changed.delegate=\"onPageChanged($event)\" md-pages.bind=\"maxPage\" md-active-page.bind=\"activePage\"></md-pagination></div></div></template>"; });
+define('text!styles.css', ['module'], function(module) { module.exports = ".padl {\n  margin-left: 1rem;\n}\n"; });
+define('text!contact-list.html', ['module'], function(module) { module.exports = "<template><md-navbar><a href=\"#\" class=\"brand-logo left\"><span class=\"padl\">連絡先一覧</span></a><ul class=\"hide-on-med-and-down right\"><li md-waves><a>About</a></li><li md-waves><a>Installation</a></li><li md-waves><a>Project Status</a></li></ul></md-navbar><div class=\"row\"><div class=\"col s12\"><md-collection><md-collection-item repeat.for=\"contact of contacts\" click.delegate=\"onClickRow($index)\" class.bind=\"selectedRow == $index ? 'indigo white-text' : 'black-text'\"> ${contact.MCNTCT_ContactCD} : ${contact.MCNTCT_ContactName} </md-collection-item></md-collection><div class=\"fixed-action-btn\" style=\"bottom:45px;right:24px\"><a md-button=\"floating: true; large: true;\" md-tooltip=\"position: left; text: edit;\" md-waves=\"color: light; circle: true;\"><i class=\"large material-icons\">mode_edit</i></a><ul><li><a md-button=\"floating: true;\" md-tooltip=\"position: left; text: add;\" md-waves=\"color: light; circle: true;\" class=\"green\" route-href=\"route: contactNew;\"><i class=\"material-icons\">add</i></a></li><li><a md-button=\"floating: true;\" md-tooltip=\"position: left; text: edit;\" md-waves=\"color: light; circle: true;\" class=\"blue\"><i class=\"material-icons\">edit</i></a></li></ul></div></div></div><div class=\"row\" style=\"text-align:center\"><div class=\"col s12\"><md-pagination md-on-page-changed.delegate=\"onPageChanged($event)\" md-pages.bind=\"maxPage\" md-active-page.bind=\"activePage\"></md-pagination></div></div></template>"; });
 define('text!contact-new.html', ['module'], function(module) { module.exports = "<template><md-navbar><a href=\"#\" class=\"brand-logo left\"><span class=\"padl\">連絡先登録</span></a><ul class=\"hide-on-med-and-down right\"><li md-waves><a>About</a></li><li md-waves><a>Installation</a></li><li md-waves><a>Project Status</a></li></ul></md-navbar><div class=\"row\"><div class=\"col s12\"><md-input md-label=\"連絡先名称\" md-validate=\"true\" md-value.bind=\"contactName & validate:rules\"><i md-prefix class=\"material-icons\">account_circle</i></md-input><md-input md-label=\"表示順\" md-validate=\"true\" md-value.bind=\"orderDisplay & validate:rules\"><i md-prefix class=\"material-icons\">sort</i></md-input><md-input md-label=\"備考\" md-value.bind=\"note\"><i md-prefix class=\"material-icons\">note</i></md-input><md-checkbox md-checked.bind=\"activeFlg\">有効</md-checkbox></div></div><div class=\"row center\"><div class=\"col s6\"><a md-button=\"floating: true; large: true; pulse.bind: pulse;\" md-waves=\"color: light; circle: true;\" route-href=\"route: contactList;\"><i class=\"large material-icons\">arrow_back</i></a></div><div class=\"col s6\"><a md-button=\"floating: true; large: true; pulse.bind: pulse;\" md-waves=\"color: light; circle: true;\" click.delegate=\"validateModel()\"><i class=\"large material-icons\">cloud_upload</i></a></div></div></template>"; });
 //# sourceMappingURL=app-bundle.js.map
