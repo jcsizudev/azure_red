@@ -20,11 +20,147 @@ define('app',['exports'], function (exports) {
 
     App.prototype.configureRouter = function configureRouter(config, router) {
       config.title = 'Contacts';
-      config.map([{ route: '', moduleId: 'contact-list', name: 'contactList', title: 'List' }, { route: 'contactNew/', moduleId: 'contact-new', name: 'contactNew' }]);
+      config.map([{ route: '', moduleId: 'contact-list', name: 'contactList', title: 'List' }, { route: 'contactNew/', moduleId: 'contact-new', name: 'contactNew' }, { route: 'contactEdit/:id/', moduleId: 'contact-edit', name: 'contactEdit' }]);
     };
 
     return App;
   }();
+});
+define('contact-edit',['exports', './web-api', 'aurelia-framework', 'aurelia-validation', 'aurelia-materialize-bridge', 'aurelia-router', 'moment'], function (exports, _webApi, _aureliaFramework, _aureliaValidation, _aureliaMaterializeBridge, _aureliaRouter, _moment) {
+  'use strict';
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.ContactNew = undefined;
+
+  var _moment2 = _interopRequireDefault(_moment);
+
+  function _interopRequireDefault(obj) {
+    return obj && obj.__esModule ? obj : {
+      default: obj
+    };
+  }
+
+  function _classCallCheck(instance, Constructor) {
+    if (!(instance instanceof Constructor)) {
+      throw new TypeError("Cannot call a class as a function");
+    }
+  }
+
+  var _dec, _class;
+
+  var log = _aureliaFramework.LogManager.getLogger('contact-edit');
+
+  var ContactNew = exports.ContactNew = (_dec = (0, _aureliaFramework.inject)(_webApi.WebAPI, _aureliaFramework.NewInstance.of(_aureliaValidation.ValidationController), _aureliaMaterializeBridge.MdToastService, _aureliaRouter.Router), _dec(_class = function () {
+    function ContactNew(api, controller, toast, router) {
+      _classCallCheck(this, ContactNew);
+
+      this.rules = _aureliaValidation.ValidationRules.ensure('contactName').required().withMessage('連絡先名称は必須です').ensure('orderDisplay').required().withMessage('表示順は必須です').matches(/[0-9]+/).withMessage('数値を指定して下さい').rules;
+
+      this.api = api;
+      this.controller = controller;
+      this.controller.addRenderer(new _aureliaMaterializeBridge.MaterializeFormValidationRenderer());
+      this.toast = toast;
+      this.router = router;
+
+      this.advancedOptions = {
+        closeOnSelect: true,
+        closeOnClear: true,
+        monthsFull: ['１月', '２月', '３月', '４月', '５月', '６月', '７月', '８月', '９月', '１０月', '１１月', '１２月'],
+        monthsShort: ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'],
+        weekdaysFull: ['日曜日', '月曜日', '火曜日', '水曜日', '木曜日', '金曜日', '土曜日'],
+        weekdaysShort: ['日曜', '月曜', '火曜', '水曜', '木曜', '金曜', '土曜'],
+        weekdaysLetter: ['日', '月', '火', '水', '木', '金', '土'],
+        today: '今日',
+        clear: '消去',
+        close: '閉じる',
+        selectYears: 5,
+        editable: false,
+        showIcon: false,
+        format: 'yyyy/mm/dd',
+        formatSubmit: 'yyyy/mm/dd'
+      };
+
+      this.contactName = '';
+      this.orderDisplay = '';
+      this.note = '';
+
+      this.flgChangeDate = null;
+      this.updateEmplyeeCD = null;
+      this.updateDatetime = null;
+      log.info('ContactNew-constructor');
+    }
+
+    ContactNew.prototype.activate = function activate(params) {
+      var _this = this;
+
+      log.info(params);
+      this.api.getContact(params.id).then(function (results) {
+        log.info('Success');
+        log.info(results);
+        if (results.length > 0) {
+          _this.contactCd = results[0].MCNTCT_ContactCD;
+          _this.contactName = results[0].MCNTCT_ContactName;
+          _this.orderDisplay = results[0].MCNTCT_OrderDisplay;
+          _this.note = results[0].MCNTCT_Note;
+          _this.activeFlg = results[0].MCNTCT_ActiveFlg === 1 ? true : false;
+          _this.updateEmplyeeCD = results[0].MCNTCT_UpdateEmployeeCD;
+          _this.updateDatetime = (0, _moment2.default)(results[0].MCNTCT_UpdateDatetime).format('YYYY/MM/DD HH:mm:ss');
+          if (results[0].MCNTCT_FlgChangeDate) {
+            _this.flgChangeDate = (0, _moment2.default)(results[0].MCNTCT_FlgChangeDate).format('YYYY/MM/DD');
+          }
+        }
+      }).catch(function (error) {
+        log.info('Error!');
+        log.info(error);
+      });
+    };
+
+    ContactNew.prototype.validateModel = function validateModel() {
+      var _this2 = this;
+
+      this.controller.validate().then(function (v) {
+        if (v.valid) {
+          log.info('pass-1');
+          var body = [{
+            'contactCD': _this2.contactCd,
+            'contactName': _this2.contactName,
+            'orderDisplay': _this2.orderDisplay,
+            'activeFlg': _this2.activeFlg ? 1 : 0,
+            'flgChangeDate': _this2.flgChangeDate,
+            'note': _this2.note,
+            'updateEmployeeCD': 'izu_t'
+          }];
+          _this2.api.updateContact(body).then(function (results) {
+            log.info('Success');
+            log.info(results);
+            _this2.router.navigate('/');
+          }).catch(function (error) {
+            log.info('Error!');
+            log.info(error);
+          });
+        } else {
+          _this2.toast.show('You have errors!', 4000, 'red white-text');
+        }
+      });
+    };
+
+    ContactNew.prototype.created = function created() {
+      log.info('ContactEdit-created');
+    };
+
+    ContactNew.prototype.clearFlgChangeDate = function clearFlgChangeDate() {
+      if (this.activeFlg) {
+        this.flgChangeDate = null;
+      } else {
+        this.flgChangeDate = (0, _moment2.default)().format('YYYY/MM/DD');
+      }
+      return true;
+    };
+
+    return ContactNew;
+  }()) || _class);
 });
 define('contact-list',['exports', './web-api', 'aurelia-framework'], function (exports, _webApi, _aureliaFramework) {
   'use strict';
@@ -154,7 +290,7 @@ define('contact-new',['exports', './web-api', 'aurelia-framework', 'aurelia-vali
 
   var _dec, _class;
 
-  var log = _aureliaFramework.LogManager.getLogger('contact-list');
+  var log = _aureliaFramework.LogManager.getLogger('contact-new');
 
   var ContactNew = exports.ContactNew = (_dec = (0, _aureliaFramework.inject)(_webApi.WebAPI, _aureliaFramework.NewInstance.of(_aureliaValidation.ValidationController), _aureliaMaterializeBridge.MdToastService, _aureliaRouter.Router), _dec(_class = function () {
     function ContactNew(api, controller, toast, router) {
@@ -305,16 +441,13 @@ define('web-api',['exports', 'aurelia-framework'], function (exports, _aureliaFr
       });
     };
 
-    WebAPI.prototype.addContact = function addContact(postData) {
+    WebAPI.prototype.getContact = function getContact(contactId) {
       var _this2 = this;
 
       this.isRequesting = true;
       var strUrl = 'https://izufr01.azurewebsites.net/api/SA21/01/';
-      return fetch(strUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(postData)
-      }).then(function (response) {
+      strUrl += contactId;
+      return fetch(strUrl).then(function (response) {
         _this2.isRequesting = false;
         log.info('Success!');
         log.info(response);
@@ -331,13 +464,13 @@ define('web-api',['exports', 'aurelia-framework'], function (exports, _aureliaFr
       });
     };
 
-    WebAPI.prototype.delContact = function delContact(postData) {
+    WebAPI.prototype.addContact = function addContact(postData) {
       var _this3 = this;
 
       this.isRequesting = true;
       var strUrl = 'https://izufr01.azurewebsites.net/api/SA21/01/';
       return fetch(strUrl, {
-        method: 'DELETE',
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(postData)
       }).then(function (response) {
@@ -351,6 +484,58 @@ define('web-api',['exports', 'aurelia-framework'], function (exports, _aureliaFr
         }
       }).catch(function (error) {
         _this3.isRequesting = false;
+        log.info('Error!');
+        log.info(response);
+        return error.json();
+      });
+    };
+
+    WebAPI.prototype.updateContact = function updateContact(postData) {
+      var _this4 = this;
+
+      this.isRequesting = true;
+      var strUrl = 'https://izufr01.azurewebsites.net/api/SA21/01/';
+      return fetch(strUrl, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(postData)
+      }).then(function (response) {
+        _this4.isRequesting = false;
+        log.info('Success!');
+        log.info(response);
+        if (response.status !== 200) {
+          rejected(response);
+        } else {
+          return response.json();
+        }
+      }).catch(function (error) {
+        _this4.isRequesting = false;
+        log.info('Error!');
+        log.info(response);
+        return error.json();
+      });
+    };
+
+    WebAPI.prototype.delContact = function delContact(postData) {
+      var _this5 = this;
+
+      this.isRequesting = true;
+      var strUrl = 'https://izufr01.azurewebsites.net/api/SA21/01/';
+      return fetch(strUrl, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(postData)
+      }).then(function (response) {
+        _this5.isRequesting = false;
+        log.info('Success!');
+        log.info(response);
+        if (response.status !== 200) {
+          rejected(response);
+        } else {
+          return response.json();
+        }
+      }).catch(function (error) {
+        _this5.isRequesting = false;
         log.info('Error!');
         log.info(response);
         return error.json();
@@ -370,8 +555,10 @@ define('resources/index',["exports"], function (exports) {
   function configure(config) {}
 });
 define('text!app.html', ['module'], function(module) { module.exports = "<template><require from=\"materialize-css/css/materialize.css\"></require><require from=\"./styles.css\"></require><md-colors md-primary-color=\"#ee6e73\" md-accent-color=\"#2bbbad\" md-error-color=\"#FF0000\"></md-colors><div class=\"container\"><router-view></router-view></div></template>"; });
+define('text!contact-edit-styles.css', ['module'], function(module) { module.exports = ".valign-base {\n  display: flex;\n  align-items: baseline;\n}\n"; });
 define('text!contact-list-styles.css', ['module'], function(module) { module.exports = "md-collection-item.collection-item:not(.active):hover {\n  background-color: initial;\n}\n"; });
-define('text!contact-list.html', ['module'], function(module) { module.exports = "<template><require from=\"./contact-list-styles.css\"></require><md-navbar><a href=\"#\" class=\"brand-logo left\"><span class=\"padl\">連絡先一覧</span></a><ul class=\"hide-on-med-and-down right\"><li md-waves><a>About</a></li><li md-waves><a>Installation</a></li><li md-waves><a>Project Status</a></li></ul></md-navbar><div class=\"row\"><div class=\"col s12\"><md-collection><md-collection-item repeat.for=\"contact of contacts\" class=\"${contact.selected ? 'blue darken-2 white-text' : ''}\" click.delegate=\"onClickRow($index)\"><span touchstart.delegate=\"onClickRow($index)\"><i class=\"material-icons\" item.bind=\"contact\">${contact.selected ? 'check' : 'check_box_outline_blank'}</i></span> ${contact.MCNTCT_ContactCD} : ${contact.MCNTCT_ContactName} </md-collection-item></md-collection></div></div><div class=\"row\" style=\"text-align:center\"><div class=\"col s12\"><md-pagination md-on-page-changed.delegate=\"onPageChanged($event)\" md-pages.bind=\"maxPage\" md-active-page.bind=\"activePage\"></md-pagination></div></div><div class=\"row\"><div class=\"col s12\"><div class=\"fixed-action-btn\" style=\"bottom:5px;right:5px\"><a md-button=\"floating: true; large: true;\" md-waves=\"color: light; circle: true;\"><i class=\"large material-icons\">mode_edit</i></a><ul><li><a md-button=\"floating: true;\" md-waves=\"color: light; circle: true;\" class=\"green\" route-href=\"route: contactNew;\"><i class=\"material-icons\">add</i></a></li><li><a md-button=\"floating: true; disabled.bind: selectedIdx < 0;\" md-waves=\"color: light; circle: true;\" class=\"blue\"><i class=\"material-icons\">edit</i></a></li><li><a md-button=\"floating: true; disabled.bind: selectedIdx < 0;\" md-waves=\"color: light; circle: true;\" class=\"red\" click.delegate=\"openDelModal()\"><i class=\"material-icons\">delete</i></a></li></ul></div></div><div id=\"delmdl\" md-modal md-modal.ref=\"delmdl\"><div class=\"modal-content\"><h5>削除確認</h5><p>選択した以下の連絡先を削除しますか？<br> ${contacts[selectedIdx].MCNTCT_ContactCD} : ${contacts[selectedIdx].MCNTCT_ContactName} </p></div><div class=\"modal-footer\"><a click.delegate=\"onDelAgree()\" md-button md-waves=\"color: accent;\" class=\"modal-action modal-close\">OK</a> <a md-button md-waves=\"color: accent;\" class=\"modal-action modal-close\">Cancel</a></div></div></div></template>"; });
+define('text!contact-edit.html', ['module'], function(module) { module.exports = "<template><require from=\"./contact-edit-styles.css\"></require><md-navbar><a href=\"#\" class=\"brand-logo left\"><span class=\"padl\">連絡先編集</span></a><ul class=\"hide-on-med-and-down right\"><li md-waves><a>About</a></li><li md-waves><a>Installation</a></li><li md-waves><a>Project Status</a></li></ul></md-navbar><div class=\"row\"><div class=\"col s12\"><md-input md-label=\"連絡先コード\" md-validate=\"false\" md-value.bind=\"contactCd\" md-readonly.bind=\"true\"><i md-prefix class=\"material-icons\">format_list_numbered</i></md-input><md-input md-label=\"連絡先名称\" md-validate=\"true\" md-value.bind=\"contactName & validate:rules\"><i md-prefix class=\"material-icons\">account_circle</i></md-input><md-input md-label=\"表示順\" md-validate=\"true\" md-value.bind=\"orderDisplay & validate:rules\"><i md-prefix class=\"material-icons\">sort</i></md-input><md-input md-label=\"備考\" md-value.bind=\"note\"><i md-prefix class=\"material-icons\">note</i></md-input></div></div><div class=\"row valign-base\"><div class=\"col s2\"><md-checkbox md-checked.bind=\"activeFlg\" change.delegate=\"clearFlgChangeDate()\">有効</md-checkbox></div><div class=\"col s10\"><input md-datepicker=\"container: body; value.two-way: flgChangeDate; options.bind: advancedOptions;\" md-datepicker.ref=\"datePicker\" type=\"date\" placeholder=\"無効化日\" disabled.bind=\"activeFlg\"></div></div><div class=\"row\"><div class=\"col s6\"><span>更新者：</span><span>${updateEmplyeeCD}</span></div><div class=\"col s6\"><span>更新日：</span><span>${updateDatetime}</span></div></div><div class=\"row center\"><div class=\"col s6\"><a md-button=\"floating: true; large: true; pulse.bind: pulse;\" md-waves=\"color: light; circle: true;\" route-href=\"route: contactList;\"><i class=\"large material-icons\">arrow_back</i></a></div><div class=\"col s6\"><a md-button=\"floating: true; large: true; pulse.bind: pulse;\" md-waves=\"color: light; circle: true;\" click.delegate=\"validateModel()\"><i class=\"large material-icons\">cloud_upload</i></a></div></div></template>"; });
+define('text!contact-list.html', ['module'], function(module) { module.exports = "<template><require from=\"./contact-list-styles.css\"></require><md-navbar><a href=\"#\" class=\"brand-logo left\"><span class=\"padl\">連絡先一覧</span></a><ul class=\"hide-on-med-and-down right\"><li md-waves><a>About</a></li><li md-waves><a>Installation</a></li><li md-waves><a>Project Status</a></li></ul></md-navbar><div class=\"row\"><div class=\"col s12\"><md-collection><md-collection-item repeat.for=\"contact of contacts\" class=\"${contact.selected ? 'blue darken-2 white-text' : ''}\" click.delegate=\"onClickRow($index)\"><span touchstart.delegate=\"onClickRow($index)\"><i class=\"material-icons\" item.bind=\"contact\">${contact.selected ? 'check' : 'check_box_outline_blank'}</i></span> ${contact.MCNTCT_ContactCD} : ${contact.MCNTCT_ContactName} </md-collection-item></md-collection></div></div><div class=\"row\" style=\"text-align:center\"><div class=\"col s12\"><md-pagination md-on-page-changed.delegate=\"onPageChanged($event)\" md-pages.bind=\"maxPage\" md-active-page.bind=\"activePage\"></md-pagination></div></div><div class=\"row\"><div class=\"col s12\"><div class=\"fixed-action-btn\" style=\"bottom:5px;right:5px\"><a md-button=\"floating: true; large: true;\" md-waves=\"color: light; circle: true;\"><i class=\"large material-icons\">mode_edit</i></a><ul><li><a md-button=\"floating: true;\" md-waves=\"color: light; circle: true;\" class=\"green\" route-href=\"route: contactNew;\"><i class=\"material-icons\">add</i></a></li><li><a md-button=\"floating: true; disabled.bind: selectedIdx < 0;\" md-waves=\"color: light; circle: true;\" class=\"blue\" route-href=\"route: contactEdit; params.bind: {id: selectedIdx >= 0 ? contacts[selectedIdx].MCNTCT_ContactCD : 0}\"><i class=\"material-icons\">edit</i></a></li><li><a md-button=\"floating: true; disabled.bind: selectedIdx < 0;\" md-waves=\"color: light; circle: true;\" class=\"red\" click.delegate=\"openDelModal()\"><i class=\"material-icons\">delete</i></a></li></ul></div></div><div id=\"delmdl\" md-modal md-modal.ref=\"delmdl\"><div class=\"modal-content\"><h5>削除確認</h5><p>選択した以下の連絡先を削除しますか？<br> ${contacts[selectedIdx].MCNTCT_ContactCD} : ${contacts[selectedIdx].MCNTCT_ContactName} </p></div><div class=\"modal-footer\"><a click.delegate=\"onDelAgree()\" md-button md-waves=\"color: accent;\" class=\"modal-action modal-close\">OK</a> <a md-button md-waves=\"color: accent;\" class=\"modal-action modal-close\">Cancel</a></div></div></div></template>"; });
 define('text!styles.css', ['module'], function(module) { module.exports = ".padl {\n  margin-left: 1rem;\n}\n"; });
 define('text!contact-new.html', ['module'], function(module) { module.exports = "<template><md-navbar><a href=\"#\" class=\"brand-logo left\"><span class=\"padl\">連絡先登録</span></a><ul class=\"hide-on-med-and-down right\"><li md-waves><a>About</a></li><li md-waves><a>Installation</a></li><li md-waves><a>Project Status</a></li></ul></md-navbar><div class=\"row\"><div class=\"col s12\"><md-input md-label=\"連絡先名称\" md-validate=\"true\" md-value.bind=\"contactName & validate:rules\"><i md-prefix class=\"material-icons\">account_circle</i></md-input><md-input md-label=\"表示順\" md-validate=\"true\" md-value.bind=\"orderDisplay & validate:rules\"><i md-prefix class=\"material-icons\">sort</i></md-input><md-input md-label=\"備考\" md-value.bind=\"note\"><i md-prefix class=\"material-icons\">note</i></md-input><md-checkbox md-checked.bind=\"activeFlg\">有効</md-checkbox></div></div><div class=\"row center\"><div class=\"col s6\"><a md-button=\"floating: true; large: true; pulse.bind: pulse;\" md-waves=\"color: light; circle: true;\" route-href=\"route: contactList;\"><i class=\"large material-icons\">arrow_back</i></a></div><div class=\"col s6\"><a md-button=\"floating: true; large: true; pulse.bind: pulse;\" md-waves=\"color: light; circle: true;\" click.delegate=\"validateModel()\"><i class=\"large material-icons\">cloud_upload</i></a></div></div></template>"; });
 //# sourceMappingURL=app-bundle.js.map
