@@ -25,6 +25,7 @@ var settings = {
     },
     httpNodeRoot: "/",
     userDir:".",
+	flowFile: 'flows_azure_red.json',
     functionGlobalContext: { }    // enables global context
 };
 
