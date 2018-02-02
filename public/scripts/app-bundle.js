@@ -207,13 +207,25 @@ define('contact-list',['exports', './web-api', 'aurelia-framework', 'moment'], f
       this.onCreating = false;
       this.selectedIdx = -1;
       this.dispLoading = false;
+      this.sortContactCd = 'sort';
+      this.selectedSortItem = null;
     }
 
     ContactList.prototype.showList = function showList() {
       var _this = this;
 
+      var orderClass = null;
+      var orderItem = null;
+
+      if (this.selectedSortItem) {
+        orderItem = this.selectedSortItem.attr('name');
+        orderClass = this.selectedSortItem.text() === 'arrow_downward' ? 1 : 2;
+        if (orderItem === 'MCNTCT_ContactName' || orderItem === 'MCNTCT_UpdateEmployeeCD') {
+          orderClass += 2;
+        }
+      }
       this.dispLoading = true;
-      this.api.getContactList(this.activePage, this.lineCount).then(function (contacts) {
+      this.api.getContactList(this.activePage, this.lineCount, orderClass, orderItem).then(function (contacts) {
         log.info('Success!');
         log.info(contacts);
         _this.contacts = contacts.map(function (e) {
@@ -227,6 +239,7 @@ define('contact-list',['exports', './web-api', 'aurelia-framework', 'moment'], f
           _this.maxPage += 1;
         }
         _this.dispLoading = false;
+        log.info($("i[name='sortContactCd']"));
       }).catch(function (error) {
         log.info('Error!');
         log.info(error);
@@ -292,6 +305,39 @@ define('contact-list',['exports', './web-api', 'aurelia-framework', 'moment'], f
         log.info(error);
         _this2.dispLoading = false;
       });
+    };
+
+    ContactList.prototype.sortClick = function sortClick(e) {
+      var targ = $(e.target);
+      var elem = null;
+      if (targ && targ.prop('tagName').toUpperCase() === 'I') {
+        elem = targ;
+      } else if (targ.find('i') && targ.find('i').prop('tagName').toUpperCase() === 'I') {
+        elem = targ.find('i');
+      } else {
+        return;
+      }
+
+      if (this.selectedSortItem === null) {
+        elem.text('arrow_downward');
+        this.selectedSortItem = elem;
+        this.showList();
+      } else if (this.selectedSortItem.attr('name') === elem.attr('name')) {
+        if (elem.text() === 'arrow_downward') {
+          elem.text('arrow_upward');
+        } else {
+          elem.text('arrow_downward');
+        }
+        this.showList();
+      } else {
+        this.selectedSortItem.text('sort');
+        elem.text('arrow_downward');
+        this.selectedSortItem = elem;
+        this.showList();
+      }
+
+      log.info(elem);
+      log.info(elem.attr('name'));
     };
 
     return ContactList;
@@ -444,13 +490,19 @@ define('web-api',['exports', 'aurelia-framework'], function (exports, _aureliaFr
       this.isRequesting = false;
     }
 
-    WebAPI.prototype.getContactList = function getContactList(page, lineCount) {
+    WebAPI.prototype.getContactList = function getContactList(page, lineCount, orderClass, orderItem) {
       var _this = this;
 
       this.isRequesting = true;
       var strUrl = 'https://izufr01.azurewebsites.net/api/SA21/01/';
       var skipRows = (page - 1) * lineCount;
-      strUrl += skipRows + '/' + lineCount;
+      strUrl += skipRows + '/' + lineCount + (orderClass || orderItem ? '?' : '');
+      if (orderClass) {
+        strUrl += 'orderClass=' + orderClass + (orderItem ? '&' : '');
+      }
+      if (orderItem) {
+        strUrl += 'orderItem=' + orderItem;
+      }
       return fetch(strUrl).then(function (response) {
         _this.isRequesting = false;
         log.info('Success!');
@@ -583,11 +635,11 @@ define('resources/index',["exports"], function (exports) {
 });
 define('text!contact-edit-styles.css', ['module'], function(module) { module.exports = ".valign-base {\n  display: flex;\n  align-items: baseline;\n}\n"; });
 define('text!app.html', ['module'], function(module) { module.exports = "<template><require from=\"materialize-css/css/materialize.css\"></require><require from=\"./styles.css\"></require><md-colors md-primary-color=\"#ee6e73\" md-accent-color=\"#2bbbad\" md-error-color=\"#FF0000\"></md-colors><div class=\"container\"><router-view></router-view></div></template>"; });
-define('text!contact-list-styles.css', ['module'], function(module) { module.exports = "md-collection-item.collection-item:not(.active):hover {\n  background-color: initial;\n}\n\n.listStyle {\n  cursor: pointer;\n}\n\n.landOnly {}\n\n@media only screen and (orientation: portrait) {\n  .landOnly {\n    display: none;\n  }\n}\n"; });
+define('text!contact-list-styles.css', ['module'], function(module) { module.exports = "md-collection-item.collection-item:not(.active):hover {\n  background-color: initial;\n}\n\n.touchTarget {\n  cursor: pointer;\n}\n\n.landOnly {}\n\n@media only screen and (orientation: portrait) {\n  .landOnly {\n    display: none;\n  }\n}\n"; });
 define('text!loading.css', ['module'], function(module) { module.exports = ".loading{\n  position: fixed;\n  width: 100vw;\n  height: 100vh;\n  top: 0px;\n  left: 0px;\n  background: #eee;\n  z-index: 9999;\n  opacity: 0.5;\n}\n\n.progressIcon {\n  width: 80%;\n  margin: 0 auto;\n}\n"; });
 define('text!styles.css', ['module'], function(module) { module.exports = ".padl {\n  margin-left: 1rem;\n}\n"; });
-define('text!contact-edit.html', ['module'], function(module) { module.exports = "<template><require from=\"./contact-edit-styles.css\"></require><require from=\"./loading.html\"></require><loading disp-loading.two-way=\"dispLoading\"></loading><md-navbar><a href=\"#\" class=\"brand-logo left\"><span class=\"padl\">連絡先編集</span></a><ul class=\"hide-on-med-and-down right\"><li md-waves><a>About</a></li><li md-waves><a>Installation</a></li><li md-waves><a>Project Status</a></li></ul></md-navbar><div class=\"row\"><div class=\"col s12\"><md-input md-label=\"連絡先コード\" md-validate=\"false\" md-value.bind=\"contactCd\" md-readonly.bind=\"true\"><i md-prefix class=\"material-icons\">format_list_numbered</i></md-input><md-input md-label=\"連絡先名称\" md-validate=\"true\" md-value.bind=\"contactName & validate:rules\"><i md-prefix class=\"material-icons\">account_circle</i></md-input><md-input md-label=\"表示順\" md-validate=\"true\" md-value.bind=\"orderDisplay & validate:rules\"><i md-prefix class=\"material-icons\">sort</i></md-input><md-input md-label=\"備考\" md-value.bind=\"note\"><i md-prefix class=\"material-icons\">note</i></md-input></div></div><div class=\"row valign-base\"><div class=\"col s2\"><md-checkbox md-checked.bind=\"activeFlg\" change.delegate=\"clearFlgChangeDate()\">有効</md-checkbox></div><div class=\"col s10\"><input md-datepicker=\"container: body; value.two-way: flgChangeDate; options.bind: advancedOptions;\" md-datepicker.ref=\"datePicker\" type=\"date\" placeholder=\"無効化日\" disabled.bind=\"activeFlg\"></div></div><div class=\"row\"><div class=\"col s6\"><span>更新者：</span><span>${updateEmplyeeCD}</span></div><div class=\"col s6\"><span>更新日：</span><span>${updateDatetime}</span></div></div><div class=\"row center\"><div class=\"col s6\"><a md-button=\"floating: true; large: true; pulse.bind: pulse;\" md-waves=\"color: light; circle: true;\" route-href=\"route: contactList;\"><i class=\"large material-icons\">arrow_back</i></a></div><div class=\"col s6\"><a md-button=\"floating: true; large: true; pulse.bind: pulse;\" md-waves=\"color: light; circle: true;\" click.delegate=\"validateModel()\"><i class=\"large material-icons\">cloud_upload</i></a></div></div></template>"; });
-define('text!contact-list.html', ['module'], function(module) { module.exports = "<template><require from=\"./contact-list-styles.css\"></require><require from=\"./loading.html\"></require><loading disp-loading.two-way=\"dispLoading\"></loading><md-navbar><a href=\"#\" class=\"brand-logo left\"><span class=\"padl\">連絡先一覧</span></a><ul class=\"hide-on-med-and-down right\"><li md-waves><a>About</a></li><li md-waves><a>Installation</a></li><li md-waves><a>Project Status</a></li></ul></md-navbar><div class=\"row\"><div class=\"col s12\"><table><thead><th>Code</th><th>Name</th><th class=\"landOnly\">Order</th><th class=\"landOnly\">Updater</th><th class=\"landOnly\">Updated</th></thead><tr repeat.for=\"contact of contacts\" class=\"${contact.selected ? 'blue darken-2 white-text listStyle' : 'listStyle'}\" click.delegate=\"onClickRow($index)\"><td>${contact.MCNTCT_ContactCD}</td><td>${contact.MCNTCT_ContactName}</td><td class=\"landOnly\">${contact.MCNTCT_OrderDisplay}</td><td class=\"landOnly\">${contact.MCNTCT_UpdateEmployeeCD}</td><td class=\"landOnly\">${contact.displayUpdated}</td></tr></table></div></div><div class=\"row\" style=\"text-align:center\"><div class=\"col s12\"><md-pagination md-on-page-changed.delegate=\"onPageChanged($event)\" md-pages.bind=\"maxPage\" md-active-page.bind=\"activePage\"></md-pagination></div></div><div class=\"row\"><div class=\"col s12\"><div class=\"fixed-action-btn click-to-toggle\" style=\"bottom:5px;right:5px\"><a md-button=\"floating: true; large: true;\" md-waves=\"color: light; circle: true;\"><i class=\"large material-icons\">mode_edit</i></a><ul><li><a md-button=\"floating: true; large: true;\" md-waves=\"color: light; circle: true;\" class=\"green\" route-href=\"route: contactNew;\"><i class=\"material-icons\">add</i></a></li><li><a md-button=\"floating: true; disabled.bind: selectedIdx < 0; large: true;\" md-waves=\"color: light; circle: true;\" class=\"blue\" route-href=\"route: contactEdit; params.bind: {id: selectedIdx >= 0 ? contacts[selectedIdx].MCNTCT_ContactCD : 0}\"><i class=\"material-icons\">edit</i></a></li><li><a md-button=\"floating: true; disabled.bind: selectedIdx < 0; large: true;\" md-waves=\"color: light; circle: true;\" class=\"red\" click.delegate=\"openDelModal()\"><i class=\"material-icons\">delete</i></a></li></ul></div></div><div id=\"delmdl\" md-modal md-modal.ref=\"delmdl\"><div class=\"modal-content\"><h5 class=\"landOnly\">削除確認</h5><p>選択した以下の連絡先を削除しますか？<br> ${contacts[selectedIdx].MCNTCT_ContactCD} : ${contacts[selectedIdx].MCNTCT_ContactName} </p></div><div class=\"modal-footer\"><a click.delegate=\"onDelAgree()\" md-button md-waves=\"color: accent;\" class=\"modal-action modal-close\">OK</a> <a md-button md-waves=\"color: accent;\" class=\"modal-action modal-close\">Cancel</a></div></div></div></template>"; });
+define('text!contact-edit.html', ['module'], function(module) { module.exports = "<template><require from=\"./contact-edit-styles.css\"></require><require from=\"./loading.html\"></require><loading disp-loading.two-way=\"dispLoading\"></loading><md-navbar><a href=\"#\" class=\"brand-logo left\"><span class=\"padl\">連絡先編集</span></a><ul class=\"hide-on-med-and-down right\"><li md-waves><a>About</a></li><li md-waves><a>Installation</a></li><li md-waves><a>Project Status</a></li></ul></md-navbar><div class=\"row\"><div class=\"col s12\"><md-input md-label=\"連絡先コード\" md-validate=\"false\" md-value.bind=\"contactCd\" md-readonly.bind=\"true\"><i md-prefix class=\"material-icons\">format_list_numbered</i></md-input><md-input md-label=\"連絡先名称\" md-validate=\"true\" md-value.bind=\"contactName & validate:rules\"><i md-prefix class=\"material-icons\">account_circle</i></md-input><md-input md-label=\"表示順\" md-validate=\"true\" md-value.bind=\"orderDisplay & validate:rules\"><i md-prefix class=\"material-icons\">sort</i></md-input><md-input md-label=\"備考\" md-value.bind=\"note\"><i md-prefix class=\"material-icons\">note</i></md-input></div></div><div class=\"row valign-base\"><div class=\"col s4\"><md-checkbox md-checked.bind=\"activeFlg\" change.delegate=\"clearFlgChangeDate()\">有効</md-checkbox></div><div class=\"col s8\"><input md-datepicker=\"container: body; value.two-way: flgChangeDate; options.bind: advancedOptions;\" md-datepicker.ref=\"datePicker\" type=\"date\" placeholder=\"無効化日\" disabled.bind=\"activeFlg\"></div></div><div class=\"row\"><div class=\"col s6\"><span>更新者：</span><span>${updateEmplyeeCD}</span></div><div class=\"col s6\"><span>更新日：</span><span>${updateDatetime}</span></div></div><div class=\"row center\"><div class=\"col s6\"><a md-button=\"floating: true; large: true; pulse.bind: pulse;\" md-waves=\"color: light; circle: true;\" route-href=\"route: contactList;\"><i class=\"large material-icons\">arrow_back</i></a></div><div class=\"col s6\"><a md-button=\"floating: true; large: true; pulse.bind: pulse;\" md-waves=\"color: light; circle: true;\" click.delegate=\"validateModel()\"><i class=\"large material-icons\">cloud_upload</i></a></div></div></template>"; });
+define('text!contact-list.html', ['module'], function(module) { module.exports = "<template><require from=\"./contact-list-styles.css\"></require><require from=\"./loading.html\"></require><loading disp-loading.two-way=\"dispLoading\"></loading><md-navbar><a href=\"#\" class=\"brand-logo left\"><span class=\"padl\">連絡先一覧</span></a><ul class=\"hide-on-med-and-down right\"><li md-waves><a>About</a></li><li md-waves><a>Installation</a></li><li md-waves><a>Project Status</a></li></ul></md-navbar><div class=\"row\"><div class=\"col s12\"><table class=\"striped\"><thead><th class=\"right touchTarget\" click.delegate=\"sortClick($event)\"><i name=\"MCNTCT_ContactCD\" class=\"tiny material-icons\">sort</i>Code</th><th class=\"center touchTarget\" click.delegate=\"sortClick($event)\"><i name=\"MCNTCT_ContactName\" class=\"tiny material-icons\">sort</i>Name</th><th class=\"landOnly right touchTarget\" click.delegate=\"sortClick($event)\"><i name=\"MCNTCT_OrderDisplay\" class=\"tiny material-icons\">sort</i>Order</th><th class=\"landOnly center touchTarget\" click.delegate=\"sortClick($event)\"><i name=\"MCNTCT_UpdateEmployeeCD\" class=\"tiny material-icons\">sort</i>Updater</th><th class=\"landOnly center touchTarget\" click.delegate=\"sortClick($event)\"><i name=\"MCNTCT_UpdateDatetime\" class=\"tiny material-icons\">sort</i>Updated</th></thead><tbody><tr repeat.for=\"contact of contacts\" class=\"${contact.selected ? 'blue darken-2 white-text touchTarget' : 'touchTarget'}\" click.delegate=\"onClickRow($index)\"><td class=\"right\">${contact.MCNTCT_ContactCD}</td><td class=\"center\">${contact.MCNTCT_ContactName}</td><td class=\"landOnly right\">${contact.MCNTCT_OrderDisplay}</td><td class=\"landOnly center\">${contact.MCNTCT_UpdateEmployeeCD}</td><td class=\"landOnly center\">${contact.displayUpdated}</td></tr></tbody></table></div></div><div class=\"row\" style=\"text-align:center\"><div class=\"col s12\"><md-pagination md-on-page-changed.delegate=\"onPageChanged($event)\" md-pages.bind=\"maxPage\" md-active-page.bind=\"activePage\"></md-pagination></div></div><div class=\"row\"><div class=\"col s12\"><div class=\"fixed-action-btn click-to-toggle\" style=\"bottom:5px;right:5px\"><a md-button=\"floating: true; large: true;\" md-waves=\"color: light; circle: true;\"><i class=\"large material-icons\">mode_edit</i></a><ul><li><a md-button=\"floating: true; large: true;\" md-waves=\"color: light; circle: true;\" class=\"green\" route-href=\"route: contactNew;\"><i class=\"material-icons\">add</i></a></li><li><a md-button=\"floating: true; disabled.bind: selectedIdx < 0; large: true;\" md-waves=\"color: light; circle: true;\" class=\"blue\" route-href=\"route: contactEdit; params.bind: {id: selectedIdx >= 0 ? contacts[selectedIdx].MCNTCT_ContactCD : 0}\"><i class=\"material-icons\">edit</i></a></li><li><a md-button=\"floating: true; disabled.bind: selectedIdx < 0; large: true;\" md-waves=\"color: light; circle: true;\" class=\"red\" click.delegate=\"openDelModal()\"><i class=\"material-icons\">delete</i></a></li></ul></div></div><div id=\"delmdl\" md-modal md-modal.ref=\"delmdl\"><div class=\"modal-content\"><h5 class=\"landOnly\">削除確認</h5><p>選択した以下の連絡先を削除しますか？<br> ${contacts[selectedIdx].MCNTCT_ContactCD} : ${contacts[selectedIdx].MCNTCT_ContactName} </p></div><div class=\"modal-footer\"><a click.delegate=\"onDelAgree()\" md-button md-waves=\"color: accent;\" class=\"modal-action modal-close\">OK</a> <a md-button md-waves=\"color: accent;\" class=\"modal-action modal-close\">Cancel</a></div></div></div></template>"; });
 define('text!contact-new.html', ['module'], function(module) { module.exports = "<template><require from=\"./loading.html\"></require><loading disp-loading.two-way=\"dispLoading\"></loading><md-navbar><a href=\"#\" class=\"brand-logo left\"><span class=\"padl\">連絡先登録</span></a><ul class=\"hide-on-med-and-down right\"><li md-waves><a>About</a></li><li md-waves><a>Installation</a></li><li md-waves><a>Project Status</a></li></ul></md-navbar><div class=\"row\"><div class=\"col s12\"><md-input md-label=\"連絡先名称\" md-validate=\"true\" md-value.bind=\"contactName & validate:rules\"><i md-prefix class=\"material-icons\">account_circle</i></md-input><md-input md-label=\"表示順\" md-validate=\"true\" md-value.bind=\"orderDisplay & validate:rules\"><i md-prefix class=\"material-icons\">sort</i></md-input><md-input md-label=\"備考\" md-value.bind=\"note\"><i md-prefix class=\"material-icons\">note</i></md-input><md-checkbox md-checked.bind=\"activeFlg\">有効</md-checkbox></div></div><div class=\"row center\"><div class=\"col s6\"><a md-button=\"floating: true; large: true; pulse.bind: pulse;\" md-waves=\"color: light; circle: true;\" route-href=\"route: contactList;\"><i class=\"large material-icons\">arrow_back</i></a></div><div class=\"col s6\"><a md-button=\"floating: true; large: true; pulse.bind: pulse;\" md-waves=\"color: light; circle: true;\" click.delegate=\"validateModel()\"><i class=\"large material-icons\">cloud_upload</i></a></div></div></template>"; });
 define('text!loading.html', ['module'], function(module) { module.exports = "<template bindable=\"dispLoading\"><require from=\"./loading.css\"></require><div class=\"${dispLoading ? 'loading valign-wrapper center-align' : 'hide'}\"><md-progress md-type=\"circular\" md-size=\"big\" md-color=\"blue\" class.bind=\"'progressIcon'\"></md-progress></div></template>"; });
 //# sourceMappingURL=app-bundle.js.map
