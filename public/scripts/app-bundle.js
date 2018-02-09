@@ -807,12 +807,12 @@ define('page-panel',['exports', 'aurelia-framework'], function (exports, _aureli
     throw new Error('Decorating class property failed. Please ensure that transform-class-properties is enabled.');
   }
 
-  var _dec, _dec2, _desc, _value, _class, _descriptor, _descriptor2, _descriptor3;
+  var _dec, _dec2, _dec3, _class, _desc, _value, _class2, _descriptor, _descriptor2, _descriptor3;
 
   var log = _aureliaFramework.LogManager.getLogger('page-panel');
 
-  var PagePanelCustomElement = exports.PagePanelCustomElement = (_dec = (0, _aureliaFramework.bindable)({ defaultBindingMode: _aureliaFramework.bindingMode.twoWay }), _dec2 = (0, _aureliaFramework.bindable)({ defaultBindingMode: _aureliaFramework.bindingMode.twoWay }), (_class = function () {
-    function PagePanelCustomElement() {
+  var PagePanelCustomElement = exports.PagePanelCustomElement = (_dec = (0, _aureliaFramework.inject)(_aureliaFramework.TaskQueue), _dec2 = (0, _aureliaFramework.bindable)({ defaultBindingMode: _aureliaFramework.bindingMode.twoWay }), _dec3 = (0, _aureliaFramework.bindable)({ defaultBindingMode: _aureliaFramework.bindingMode.twoWay }), _dec(_class = (_class2 = function () {
+    function PagePanelCustomElement(taskQueue) {
       _classCallCheck(this, PagePanelCustomElement);
 
       _initDefineProp(this, 'activePage', _descriptor, this);
@@ -820,6 +820,8 @@ define('page-panel',['exports', 'aurelia-framework'], function (exports, _aureli
       _initDefineProp(this, 'maxPage', _descriptor2, this);
 
       _initDefineProp(this, 'changePage', _descriptor3, this);
+
+      this.taskQueue = taskQueue;
     }
 
     PagePanelCustomElement.prototype.onFirstPage = function onFirstPage() {
@@ -827,7 +829,7 @@ define('page-panel',['exports', 'aurelia-framework'], function (exports, _aureli
       if (this.activePage > 1) {
         this.activePage = 1;
         log.info('changed->(' + this.activePage + ',' + this.maxPage + ')');
-        this.changePage();
+        this.taskQueue.queueMicroTask(this.changePage);
       }
     };
 
@@ -836,7 +838,7 @@ define('page-panel',['exports', 'aurelia-framework'], function (exports, _aureli
       if (this.activePage > 1) {
         this.activePage = this.activePage - 1;
         log.info('changed->(' + this.activePage + ',' + this.maxPage + ')');
-        this.changePage();
+        this.taskQueue.queueMicroTask(this.changePage);
       }
     };
 
@@ -845,7 +847,7 @@ define('page-panel',['exports', 'aurelia-framework'], function (exports, _aureli
       if (this.activePage < this.maxPage) {
         this.activePage = this.activePage + 1;
         log.info('changed->(' + this.activePage + ',' + this.maxPage + ')');
-        this.changePage();
+        this.taskQueue.queueMicroTask(this.changePage);
       }
     };
 
@@ -854,21 +856,21 @@ define('page-panel',['exports', 'aurelia-framework'], function (exports, _aureli
       if (this.activePage < this.maxPage) {
         this.activePage = this.maxPage;
         log.info('changed->(' + this.activePage + ',' + this.maxPage + ')');
-        this.changePage();
+        this.taskQueue.queueMicroTask(this.changePage);
       }
     };
 
     return PagePanelCustomElement;
-  }(), (_descriptor = _applyDecoratedDescriptor(_class.prototype, 'activePage', [_dec], {
+  }(), (_descriptor = _applyDecoratedDescriptor(_class2.prototype, 'activePage', [_dec2], {
     enumerable: true,
     initializer: null
-  }), _descriptor2 = _applyDecoratedDescriptor(_class.prototype, 'maxPage', [_dec2], {
+  }), _descriptor2 = _applyDecoratedDescriptor(_class2.prototype, 'maxPage', [_dec3], {
     enumerable: true,
     initializer: null
-  }), _descriptor3 = _applyDecoratedDescriptor(_class.prototype, 'changePage', [_aureliaFramework.bindable], {
+  }), _descriptor3 = _applyDecoratedDescriptor(_class2.prototype, 'changePage', [_aureliaFramework.bindable], {
     enumerable: true,
     initializer: null
-  })), _class));
+  })), _class2)) || _class);
 });
 define('text!app.html', ['module'], function(module) { module.exports = "<template><require from=\"materialize-css/css/materialize.css\"></require><require from=\"./styles.css\"></require><md-colors md-primary-color=\"#ee6e73\" md-accent-color=\"#2bbbad\" md-error-color=\"#FF0000\"></md-colors><div class=\"container\"><router-view></router-view></div></template>"; });
 define('text!contact-edit-styles.css', ['module'], function(module) { module.exports = ".valign-base {\n  display: flex;\n  align-items: baseline;\n}\n"; });
@@ -879,6 +881,6 @@ define('text!loading.css', ['module'], function(module) { module.exports = ".loa
 define('text!contact-new.html', ['module'], function(module) { module.exports = "<template><require from=\"./loading.html\"></require><loading disp-loading.two-way=\"dispLoading\"></loading><md-navbar><a href=\"#\" class=\"brand-logo left\"><span class=\"padl\">連絡先登録</span></a><ul class=\"hide-on-med-and-down right\"><li md-waves><a>About</a></li><li md-waves><a>Installation</a></li><li md-waves><a>Project Status</a></li></ul></md-navbar><div class=\"row\"><div class=\"col s12\"><md-input md-label=\"連絡先名称\" md-validate=\"true\" md-value.bind=\"contactName & validate:rules\"><i md-prefix class=\"material-icons\">account_circle</i></md-input><md-input md-label=\"表示順\" md-validate=\"true\" md-value.bind=\"orderDisplay & validate:rules\"><i md-prefix class=\"material-icons\">sort</i></md-input><md-input md-label=\"備考\" md-value.bind=\"note\"><i md-prefix class=\"material-icons\">note</i></md-input><md-checkbox md-checked.bind=\"activeFlg\">有効</md-checkbox></div></div><div class=\"row center\"><div class=\"col s6\"><a md-button=\"floating: true; large: true; pulse.bind: pulse;\" md-waves=\"color: light; circle: true;\" route-href=\"route: contactList;\"><i class=\"large material-icons\">arrow_back</i></a></div><div class=\"col s6\"><a md-button=\"floating: true; large: true; pulse.bind: pulse;\" md-waves=\"color: light; circle: true;\" click.delegate=\"validateModel()\"><i class=\"large material-icons\">cloud_upload</i></a></div></div></template>"; });
 define('text!styles.css', ['module'], function(module) { module.exports = ".padl {\n  margin-left: 1rem;\n}\n"; });
 define('text!loading.html', ['module'], function(module) { module.exports = "<template bindable=\"dispLoading\"><require from=\"./loading.css\"></require><div class=\"${dispLoading ? 'loading valign-wrapper center-align' : 'hide'}\"><md-progress md-type=\"circular\" md-size=\"big\" md-color=\"blue\" class.bind=\"'progressIcon'\"></md-progress></div></template>"; });
-define('text!page-panel.html', ['module'], function(module) { module.exports = "<template><require from=\"./page-panel.css\"></require><div style=\"text-align:center\"><a md-waves class=\"${activePage === 1 ? 'grey-text paging_pad' : 'black-text paging_pad'}\" click.delegate=\"onFirstPage()\"><i class=\"medium material-icons\">first_page</i> </a><a md-waves class=\"${activePage === 1 ? 'grey-text paging_pad' : 'black-text paging_pad'}\" click.delegate=\"onPrevPage()\"><i class=\"medium material-icons\">chevron_left</i> </a><a md-waves class=\"${maxPage > 1 ? 'black-text paging_pad' : 'grey-text paging_pad'}\"><span class=\"paging_pad paging_font\">${activePage}</span></a><a md-waves class=\"${activePage === maxPage ? 'grey-text paging_pad' : 'black-text paging_pad'}\" click.delegate=\"onNextPage()\"><i class=\"medium material-icons\">chevron_right</i> </a><a md-waves class=\"${activePage === maxPage ? 'grey-text paging_pad' : 'black-text paging_pad'}\" click.delegate=\"onLastPage()\"><i class=\"medium material-icons\">last_page</i></a></div></template>"; });
-define('text!page-panel.css', ['module'], function(module) { module.exports = ".paging_pad {\n  padding: 0px 20px;\n}\n\n.paging_font {\n  font-size: 3rem;\n}\n"; });
+define('text!page-panel.html', ['module'], function(module) { module.exports = "<template><require from=\"./page-panel.css\"></require><div style=\"text-align:center\"><a md-waves class=\"${activePage === 1 ? 'grey-text paging_pad' : 'black-text paging_pad'}\" click.delegate=\"onFirstPage()\"><i class=\"small material-icons\">first_page</i> </a><a md-waves class=\"${activePage === 1 ? 'grey-text paging_pad' : 'black-text paging_pad'}\" click.delegate=\"onPrevPage()\"><i class=\"small material-icons\">chevron_left</i> </a><a md-waves class=\"${maxPage > 1 ? 'black-text paging_pad' : 'grey-text paging_pad'}\"><span class=\"paging_pad paging_font\">${activePage}</span></a><a md-waves class=\"${activePage === maxPage ? 'grey-text paging_pad' : 'black-text paging_pad'}\" click.delegate=\"onNextPage()\"><i class=\"small material-icons\">chevron_right</i> </a><a md-waves class=\"${activePage === maxPage ? 'grey-text paging_pad' : 'black-text paging_pad'}\" click.delegate=\"onLastPage()\"><i class=\"small material-icons\">last_page</i></a></div></template>"; });
+define('text!page-panel.css', ['module'], function(module) { module.exports = ".paging_pad {\n  padding: 0px 20px;\n}\n\n.paging_font {\n  font-size: 2rem;\n}\n"; });
 //# sourceMappingURL=app-bundle.js.map
