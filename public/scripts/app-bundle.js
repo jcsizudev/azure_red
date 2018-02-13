@@ -194,14 +194,15 @@ define('contact-list',['exports', './web-api', 'aurelia-framework', 'moment', '.
 
   var log = _aureliaFramework.LogManager.getLogger('contact-list');
 
-  var ContactList = exports.ContactList = (_dec = (0, _aureliaFramework.inject)(_webApi.WebAPI, _sesStorage.SesStorage, _aureliaRouter.Router), _dec(_class = function () {
-    function ContactList(api, storage, router) {
+  var ContactList = exports.ContactList = (_dec = (0, _aureliaFramework.inject)(_webApi.WebAPI, _sesStorage.SesStorage, _aureliaRouter.Router, _aureliaFramework.TaskQueue), _dec(_class = function () {
+    function ContactList(api, storage, router, taskQueue) {
       _classCallCheck(this, ContactList);
 
       log.info('constructor!');
       this.api = api;
       this.storage = storage;
       this.router = router;
+      this.taskQueue = taskQueue;
 
       this.contacts = [];
       this.activePage = 1;
@@ -211,35 +212,24 @@ define('contact-list',['exports', './web-api', 'aurelia-framework', 'moment', '.
       this.selectedIdx = -1;
       this.dispLoading = false;
 
-      this.selectedSortItem = null;
+      this.orderClass = null;
+      this.orderItem = null;
+      this.displaySortingMark = false;
 
       this.dispSearchPanel = false;
       this.srchContactName = null;
       this.srchActiveFlg = false;
       this.condContactName = null;
       this.condActiveFlg = false;
+
+      this.restoreOptions();
     }
 
     ContactList.prototype.showList = function showList() {
       var _this = this;
 
-      var orderClass = null;
-      var orderItem = null;
-
-      if (this.selectedSortItem) {
-        orderItem = this.selectedSortItem.attr('name');
-        orderClass = this.selectedSortItem.text() === 'arrow_downward' ? 1 : 2;
-        if (orderItem === 'MCNTCT_ContactName' || orderItem === 'MCNTCT_UpdateEmployeeCD') {
-          orderClass += 2;
-        }
-        this.storage.set('orderClass', orderClass);
-        this.storage.set('orderItem', orderItem);
-      } else {
-        orderItem = this.storage.get('orderItem');
-        orderClass = this.storage.get('orderClass');
-      }
       this.dispLoading = true;
-      this.api.getContactList(this.activePage, this.lineCount, orderClass, orderItem, this.condContactName, this.condActiveFlg).then(function (contacts) {
+      this.api.getContactList(this.activePage, this.lineCount, this.orderClass, this.orderItem, this.condContactName, this.condActiveFlg).then(function (contacts) {
         log.info('Success!');
         log.info(contacts);
         _this.contacts = contacts.map(function (e) {
@@ -247,13 +237,33 @@ define('contact-list',['exports', './web-api', 'aurelia-framework', 'moment', '.
           e.displayUpdated = (0, _moment2.default)(e.MCNTCT_UpdateDatetime).format('YYYY/MM/DD HH:mm:ss');
           return e;
         });
-        var allLineCount = contacts[0].LineCount;
-        _this.maxPage = Math.floor(allLineCount / _this.lineCount);
-        if (allLineCount % _this.lineCount !== 0) {
-          _this.maxPage += 1;
-        }
+        if (contacts.length === 0) {
+          log.info('no data! ' + _this.activePage + ' ' + _this.maxPage);
+        } else {
+          var allLineCount = contacts[0].LineCount;
+          _this.maxPage = Math.floor(allLineCount / _this.lineCount);
+          if (allLineCount % _this.lineCount !== 0) {
+            _this.maxPage += 1;
+          }
 
-        _this.restoreSortOption();
+          if (_this.displaySortingMark) {
+            var te = $("i[name='" + _this.orderItem + "']");
+            if (te) {
+              if (_this.orderClass % 2 === 0) {
+                te.text('arrow_upward');
+              } else {
+                te.text('arrow_downward');
+              }
+            }
+            _this.displaySortingMark = false;
+          }
+
+          if (_this.selectedIdx >= 0 && _this.selectedIdx < _this.contacts.length) {
+            _this.contacts[_this.selectedIdx].selected = true;
+          } else {
+            _this.selectedIdx = -1;
+          }
+        }
 
         _this.dispLoading = false;
       }).catch(function (error) {
@@ -263,27 +273,11 @@ define('contact-list',['exports', './web-api', 'aurelia-framework', 'moment', '.
       });
     };
 
-    ContactList.prototype.restoreSortOption = function restoreSortOption() {
-      if (this.selectedSortItem === null) {
-        var oc = this.storage.get('orderClass');
-        var oi = this.storage.get('orderItem');
-        if (oc && oi) {
-          var te = $("i[name='" + oi + "']");
-          if (te) {
-            if (parseInt(oc, 10) % 2 === 0) {
-              log.info('set arrow_upward');
-              te.text('arrow_upward');
-            } else {
-              log.info('set arrow_downward');
-              te.text('arrow_downward');
-            }
-            this.selectedSortItem = te;
-            log.info('oc=' + oc);
-            log.info('oi=' + oi);
-            log.info(te);
-          }
-        }
-      }
+    ContactList.prototype.retryShowList = function retryShowList() {
+      var self = this;
+      return function () {
+        self.showList();
+      };
     };
 
     ContactList.prototype.created = function created() {
@@ -305,12 +299,51 @@ define('contact-list',['exports', './web-api', 'aurelia-framework', 'moment', '.
       }
     };
 
+    ContactList.prototype.saveOptions = function saveOptions() {
+      var options = {};
+      var optionsJson = '';
+
+      options = {
+        activePage: this.activePage,
+        maxPage: this.maxPage,
+        selectedIdx: this.selectedIdx,
+        orderClass: this.orderClass,
+        orderItem: this.orderItem,
+        condContactName: this.condContactName,
+        condActiveFlg: this.condActiveFlg
+      };
+      optionsJson = JSON.stringify(options);
+      this.storage.set('options', optionsJson);
+    };
+
+    ContactList.prototype.restoreOptions = function restoreOptions() {
+      var optionsJson = null;
+      var options = null;
+
+      optionsJson = this.storage.get('options');
+      log.info(optionsJson);
+      if (optionsJson) {
+        options = JSON.parse(optionsJson);
+        log.info(options);
+        this.activePage = options.activePage;
+        this.maxPage = options.maxPage;
+        this.selectedIdx = options.selectedIdx;
+        this.orderClass = options.orderClass;
+        this.orderItem = options.orderItem;
+        this.displaySortingMark = this.orderClass ? true : false;
+        this.condContactName = options.condContactName;
+        this.condActiveFlg = options.condActiveFlg;
+      }
+    };
+
     ContactList.prototype.onAdd = function onAdd() {
+      this.saveOptions();
       this.router.navigate('/contactNew/');
     };
 
     ContactList.prototype.onEdit = function onEdit() {
       if (this.selectedIdx >= 0) {
+        this.saveOptions();
         this.router.navigate('/contactEdit/' + this.contacts[this.selectedIdx].MCNTCT_ContactCD);
       }
     };
@@ -352,23 +385,32 @@ define('contact-list',['exports', './web-api', 'aurelia-framework', 'moment', '.
         return;
       }
 
-      if (this.selectedSortItem === null) {
+      if (this.orderItem === null) {
         elem.text('arrow_downward');
-        this.selectedSortItem = elem;
-        this.showList();
-      } else if (this.selectedSortItem.attr('name') === elem.attr('name')) {
+        this.orderItem = elem.attr('name');
+        this.orderClass = 1;
+      } else if (this.orderItem === elem.attr('name')) {
         if (elem.text() === 'arrow_downward') {
           elem.text('arrow_upward');
+          this.orderClass = 2;
         } else {
           elem.text('arrow_downward');
+          this.orderClass = 1;
         }
-        this.showList();
       } else {
-        this.selectedSortItem.text('sort');
+        var te = $("i[name='" + this.orderItem + "']");
+        if (te) {
+          te.text('sort');
+        }
         elem.text('arrow_downward');
-        this.selectedSortItem = elem;
-        this.showList();
+        this.orderItem = elem.attr('name');
+        this.orderClass = 1;
       }
+
+      if (this.orderItem === 'MCNTCT_ContactName' || this.orderItem === 'MCNTCT_UpdateEmployeeCD') {
+        this.orderClass += 2;
+      }
+      this.showList();
 
       log.info(elem);
       log.info(elem.attr('name'));
@@ -398,10 +440,10 @@ define('contact-list',['exports', './web-api', 'aurelia-framework', 'moment', '.
 
     ContactList.prototype.changePageByPagingPanel = function changePageByPagingPanel() {
       log.info('changePageByPagingPanel');
-      if (this.selectedIdx >= 0) {
+      if (this.selectedIdx >= 0 && this.contacts.length > 0) {
         this.contacts[this.selectedIdx].selected = false;
-        this.selectedIdx = -1;
       }
+      this.selectedIdx = -1;
       this.showList();
     };
 
@@ -743,6 +785,15 @@ define('sesStorage',['exports', 'aurelia-framework'], function (exports, _aureli
         log.info('no sessionStorage');
       }
       return rv;
+    };
+
+    SesStorage.prototype.del = function del(key) {
+      if (this.hasSessionStorage()) {
+        window.sessionStorage.removeItem(key);
+        log.info('del:' + key);
+      } else {
+        log.info('no sessionStorage-del');
+      }
     };
 
     return SesStorage;
