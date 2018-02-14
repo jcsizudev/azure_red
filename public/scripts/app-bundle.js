@@ -827,7 +827,7 @@ define('web-api',['exports', 'aurelia-framework'], function (exports, _aureliaFr
 
     WebAPI.prototype.resCheck = function resCheck(res) {
       if (!res.ok) {
-        throw Error(res.statusText);
+        throw new Error(res.statusText);
       } else {
         return res.json();
       }
@@ -835,7 +835,7 @@ define('web-api',['exports', 'aurelia-framework'], function (exports, _aureliaFr
 
     WebAPI.prototype.jsonCheck = function jsonCheck(json) {
       if (json.error) {
-        throw Error('[' + json.error.source.name + ']' + json.error.message);
+        throw new Error('[' + json.error.source.name + ']' + json.error.message);
       } else {
         return json;
       }
@@ -843,7 +843,7 @@ define('web-api',['exports', 'aurelia-framework'], function (exports, _aureliaFr
 
     WebAPI.prototype.errorHandler = function errorHandler(error) {
       log.info(error);
-      throw Error(error.message);
+      throw new Error(error.message);
     };
 
     WebAPI.prototype.getContactList = function getContactList(page, lineCount, orderClass, orderItem, contactName, activeFlg) {
