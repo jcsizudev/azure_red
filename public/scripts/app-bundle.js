@@ -117,8 +117,7 @@ define('contact-edit',['exports', './web-api', 'aurelia-framework', 'aurelia-val
         log.info('Error!');
         log.info(error);
         _this.dispLoading = false;
-        _this.dlgerr.setMessage(error.message);
-        _this.dlgerr.openDialog();
+        _this.dlgerr.openDialog('連絡先取得エラー', error.message);
       });
     };
 
@@ -147,8 +146,7 @@ define('contact-edit',['exports', './web-api', 'aurelia-framework', 'aurelia-val
             log.info('Error!');
             log.info(error);
             _this2.dispLoading = false;
-            _this2.dlgerr.setMessage(error.message);
-            _this2.dlgerr.openDialog();
+            _this2.dlgerr.openDialog('連絡先更新エラー', error.message);
           });
         } else {
           _this2.toast.show('You have errors!', 4000, 'red white-text');
@@ -274,8 +272,7 @@ define('contact-list',['exports', './web-api', 'aurelia-framework', 'moment', '.
         log.info('Error!');
         log.info(error);
         _this.dispLoading = false;
-        _this.dlgerr.setMessage(error.message);
-        _this.dlgerr.openDialog();
+        _this.dlgerr.openDialog('連絡先一覧取得エラー', error.message);
       });
     };
 
@@ -356,7 +353,7 @@ define('contact-list',['exports', './web-api', 'aurelia-framework', 'moment', '.
 
     ContactList.prototype.openDelModal = function openDelModal() {
       $('.fixed-action-btn').closeFAB();
-      this.delmdl.open();
+      this.dlginf.openDialog('削除確認', ['選択した以下の連絡先を削除しますか？', this.contacts[this.selectedIdx].MCNTCT_ContactCD + '：' + this.contacts[this.selectedIdx].MCNTCT_ContactName]);
     };
 
     ContactList.prototype.onDelAgree = function onDelAgree() {
@@ -378,8 +375,7 @@ define('contact-list',['exports', './web-api', 'aurelia-framework', 'moment', '.
         log.info('Error!');
         log.info(error);
         _this2.dispLoading = false;
-        _this2.dlgerr.setMessage(error.message);
-        _this2.dlgerr.openDialog();
+        _this2.dlgerr.openDialog('連絡先削除エラー', error.message);
       });
     };
 
@@ -522,8 +518,7 @@ define('contact-new',['exports', './web-api', 'aurelia-framework', 'aurelia-vali
             log.info('new-Error');
             log.info(error);
             _this.dispLoading = false;
-            _this.dlgerr.setMessage(error.message);
-            _this.dlgerr.openDialog();
+            _this.dlgerr.openDialog('連絡先登録エラー', error.message);
           });
         } else {
           _this.toast.show('入力項目に誤りがあります。', 4000, 'red white-text');
@@ -537,6 +532,158 @@ define('contact-new',['exports', './web-api', 'aurelia-framework', 'aurelia-vali
 
     return ContactNew;
   }()) || _class);
+});
+define('dialog-error',['exports', 'aurelia-framework'], function (exports, _aureliaFramework) {
+  'use strict';
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.DialogError = undefined;
+
+  function _classCallCheck(instance, Constructor) {
+    if (!(instance instanceof Constructor)) {
+      throw new TypeError("Cannot call a class as a function");
+    }
+  }
+
+  var log = _aureliaFramework.LogManager.getLogger('dialog-error');
+
+  var DialogError = exports.DialogError = function () {
+    function DialogError() {
+      _classCallCheck(this, DialogError);
+
+      this.mdlmessage = '';
+    }
+
+    DialogError.prototype.setMessage = function setMessage(msg) {
+      this.mdlmessage = msg;
+    };
+
+    DialogError.prototype.openDialog = function openDialog() {
+      log.info('openDialog');
+      this.mdlerr.open();
+    };
+
+    return DialogError;
+  }();
+});
+define('dialog-info',['exports', 'aurelia-framework'], function (exports, _aureliaFramework) {
+  'use strict';
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.DialogInfoCustomElement = undefined;
+
+  function _initDefineProp(target, property, descriptor, context) {
+    if (!descriptor) return;
+    Object.defineProperty(target, property, {
+      enumerable: descriptor.enumerable,
+      configurable: descriptor.configurable,
+      writable: descriptor.writable,
+      value: descriptor.initializer ? descriptor.initializer.call(context) : void 0
+    });
+  }
+
+  function _classCallCheck(instance, Constructor) {
+    if (!(instance instanceof Constructor)) {
+      throw new TypeError("Cannot call a class as a function");
+    }
+  }
+
+  function _applyDecoratedDescriptor(target, property, decorators, descriptor, context) {
+    var desc = {};
+    Object['ke' + 'ys'](descriptor).forEach(function (key) {
+      desc[key] = descriptor[key];
+    });
+    desc.enumerable = !!desc.enumerable;
+    desc.configurable = !!desc.configurable;
+
+    if ('value' in desc || desc.initializer) {
+      desc.writable = true;
+    }
+
+    desc = decorators.slice().reverse().reduce(function (desc, decorator) {
+      return decorator(target, property, desc) || desc;
+    }, desc);
+
+    if (context && desc.initializer !== void 0) {
+      desc.value = desc.initializer ? desc.initializer.call(context) : void 0;
+      desc.initializer = undefined;
+    }
+
+    if (desc.initializer === void 0) {
+      Object['define' + 'Property'](target, property, desc);
+      desc = null;
+    }
+
+    return desc;
+  }
+
+  function _initializerWarningHelper(descriptor, context) {
+    throw new Error('Decorating class property failed. Please ensure that transform-class-properties is enabled.');
+  }
+
+  var _desc, _value, _class, _descriptor, _descriptor2, _descriptor3, _descriptor4;
+
+  var log = _aureliaFramework.LogManager.getLogger('dialog-info');
+
+  var DialogInfoCustomElement = exports.DialogInfoCustomElement = (_class = function () {
+    function DialogInfoCustomElement() {
+      _classCallCheck(this, DialogInfoCustomElement);
+
+      _initDefineProp(this, 'okHide', _descriptor, this);
+
+      _initDefineProp(this, 'cancelHide', _descriptor2, this);
+
+      _initDefineProp(this, 'okClick', _descriptor3, this);
+
+      _initDefineProp(this, 'cancelClick', _descriptor4, this);
+
+      this.title = '';
+      this.messages = [];
+    }
+
+    DialogInfoCustomElement.prototype.openDialog = function openDialog(title, messages) {
+      log.info('openDialog');
+      this.title = title;
+      if (messages instanceof Array) {
+        this.messages = messages;
+      } else {
+        this.messages = [messages];
+      }
+      this.mdlinfo.open();
+    };
+
+    DialogInfoCustomElement.prototype.onOK = function onOK() {
+      log.info('onOK');
+      if (this.okClick) {
+        this.okClick();
+      }
+    };
+
+    DialogInfoCustomElement.prototype.onCancel = function onCancel() {
+      log.info('onCancel');
+      if (this.cancelClick) {
+        this.cancelClick();
+      }
+    };
+
+    return DialogInfoCustomElement;
+  }(), (_descriptor = _applyDecoratedDescriptor(_class.prototype, 'okHide', [_aureliaFramework.bindable], {
+    enumerable: true,
+    initializer: null
+  }), _descriptor2 = _applyDecoratedDescriptor(_class.prototype, 'cancelHide', [_aureliaFramework.bindable], {
+    enumerable: true,
+    initializer: null
+  }), _descriptor3 = _applyDecoratedDescriptor(_class.prototype, 'okClick', [_aureliaFramework.bindable], {
+    enumerable: true,
+    initializer: null
+  }), _descriptor4 = _applyDecoratedDescriptor(_class.prototype, 'cancelClick', [_aureliaFramework.bindable], {
+    enumerable: true,
+    initializer: null
+  })), _class);
 });
 define('environment',["exports"], function (exports) {
   "use strict";
@@ -924,113 +1071,17 @@ define('resources/index',["exports"], function (exports) {
   exports.configure = configure;
   function configure(config) {}
 });
-define('dialog-error',['exports', 'aurelia-framework'], function (exports, _aureliaFramework) {
-  'use strict';
-
-  Object.defineProperty(exports, "__esModule", {
-    value: true
-  });
-  exports.DialogError = undefined;
-
-  function _classCallCheck(instance, Constructor) {
-    if (!(instance instanceof Constructor)) {
-      throw new TypeError("Cannot call a class as a function");
-    }
-  }
-
-  var log = _aureliaFramework.LogManager.getLogger('dialog-error');
-
-  var DialogError = exports.DialogError = function () {
-    function DialogError() {
-      _classCallCheck(this, DialogError);
-
-      this.mdlmessage = '';
-    }
-
-    DialogError.prototype.setMessage = function setMessage(msg) {
-      this.mdlmessage = msg;
-    };
-
-    DialogError.prototype.openDialog = function openDialog() {
-      log.info('openDialog');
-      this.mdlerr.open();
-    };
-
-    return DialogError;
-  }();
-});
-define('ex-error',['exports', 'aurelia-framework'], function (exports, _aureliaFramework) {
-  'use strict';
-
-  Object.defineProperty(exports, "__esModule", {
-    value: true
-  });
-  exports.ExError = undefined;
-
-  function _classCallCheck(instance, Constructor) {
-    if (!(instance instanceof Constructor)) {
-      throw new TypeError("Cannot call a class as a function");
-    }
-  }
-
-  function _possibleConstructorReturn(self, call) {
-    if (!self) {
-      throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
-    }
-
-    return call && (typeof call === "object" || typeof call === "function") ? call : self;
-  }
-
-  function _inherits(subClass, superClass) {
-    if (typeof superClass !== "function" && superClass !== null) {
-      throw new TypeError("Super expression must either be null or a function, not " + typeof superClass);
-    }
-
-    subClass.prototype = Object.create(superClass && superClass.prototype, {
-      constructor: {
-        value: subClass,
-        enumerable: false,
-        writable: true,
-        configurable: true
-      }
-    });
-    if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
-  }
-
-  var log = _aureliaFramework.LogManager.getLogger('ex-error');
-
-  var ExError = exports.ExError = function (_Error) {
-    _inherits(ExError, _Error);
-
-    function ExError(msg) {
-      _classCallCheck(this, ExError);
-
-      var _this = _possibleConstructorReturn(this, _Error.call(this));
-
-      _this.message = '';
-      if (msg instanceof ExError) {
-        log.info('ExError');
-        _this.message = msg.message;
-      } else {
-        log.info('Error');
-        _this.message = msg;
-      }
-      return _this;
-    }
-
-    return ExError;
-  }(Error);
-});
 define('text!contact-edit-styles.css', ['module'], function(module) { module.exports = ".valign-base {\n  display: flex;\n  align-items: baseline;\n}\n"; });
-define('text!app.html', ['module'], function(module) { module.exports = "<template><require from=\"materialize-css/css/materialize.css\"></require><require from=\"./styles.css\"></require><md-colors md-primary-color=\"#ee6e73\" md-accent-color=\"#2bbbad\" md-error-color=\"#FF0000\"></md-colors><div class=\"container\"><router-view></router-view></div></template>"; });
 define('text!contact-list-styles.css', ['module'], function(module) { module.exports = "md-collection-item.collection-item:not(.active):hover {\n  background-color: initial;\n}\n\n.touchTarget {\n  cursor: pointer;\n}\n\n.landOnly {}\n\n@media only screen and (orientation: portrait) {\n  .landOnly {\n    display: none;\n  }\n}\n\n.right_adjust {\n  text-align: right;\n}\n"; });
-define('text!contact-edit.html', ['module'], function(module) { module.exports = "<template><require from=\"./contact-edit-styles.css\"></require><require from=\"./loading.html\"></require><require from=\"./dialog-error\"></require><loading disp-loading.two-way=\"dispLoading\"></loading><dialog-error view-model.ref=\"dlgerr\"></dialog-error><md-navbar><a href=\"#\" class=\"brand-logo left\"><span class=\"padl\">連絡先編集</span></a><ul class=\"hide-on-med-and-down right\"><li md-waves><a>About</a></li><li md-waves><a>Installation</a></li><li md-waves><a>Project Status</a></li></ul></md-navbar><div class=\"row\"><div class=\"col s12\"><md-input md-label=\"連絡先コード\" md-validate=\"false\" md-value.bind=\"contactCd\" md-readonly.bind=\"true\"><i md-prefix class=\"material-icons\">format_list_numbered</i></md-input><md-input md-label=\"連絡先名称\" md-validate=\"true\" md-value.bind=\"contactName & validate:rules\"><i md-prefix class=\"material-icons\">account_circle</i></md-input><md-input md-label=\"表示順\" md-validate=\"true\" md-value.bind=\"orderDisplay & validate:rules\"><i md-prefix class=\"material-icons\">sort</i></md-input><md-input md-label=\"備考\" md-value.bind=\"note\"><i md-prefix class=\"material-icons\">note</i></md-input></div></div><div class=\"row valign-base\"><div class=\"col s4\"><md-checkbox md-checked.bind=\"activeFlg\" change.delegate=\"clearFlgChangeDate()\">有効</md-checkbox></div><div class=\"col s8\"><input md-datepicker=\"container: body; value.two-way: flgChangeDate; options.bind: advancedOptions;\" md-datepicker.ref=\"datePicker\" type=\"date\" placeholder=\"無効化日\" disabled.bind=\"activeFlg\"></div></div><div class=\"row\"><div class=\"col s6\"><span>更新者：</span><span>${updateEmplyeeCD}</span></div><div class=\"col s6\"><span>更新日：</span><span>${updateDatetime}</span></div></div><div class=\"row center\"><div class=\"col s6\"><a md-button=\"floating: true; large: true; pulse.bind: pulse;\" md-waves=\"color: light; circle: true;\" route-href=\"route: contactList;\"><i class=\"large material-icons\">arrow_back</i></a></div><div class=\"col s6\"><a md-button=\"floating: true; large: true; pulse.bind: pulse;\" md-waves=\"color: light; circle: true;\" click.delegate=\"validateModel()\"><i class=\"large material-icons\">cloud_upload</i></a></div></div></template>"; });
+define('text!app.html', ['module'], function(module) { module.exports = "<template><require from=\"materialize-css/css/materialize.css\"></require><require from=\"./styles.css\"></require><md-colors md-primary-color=\"#ee6e73\" md-accent-color=\"#2bbbad\" md-error-color=\"#FF0000\"></md-colors><div class=\"container\"><router-view></router-view></div></template>"; });
 define('text!loading.css', ['module'], function(module) { module.exports = ".loading{\n  position: fixed;\n  width: 100vw;\n  height: 100vh;\n  top: 0px;\n  left: 0px;\n  background: #eee;\n  z-index: 9999;\n  opacity: 0.5;\n}\n\n.progressIcon {\n  width: 80%;\n  margin: 0 auto;\n}\n"; });
 define('text!page-panel.css', ['module'], function(module) { module.exports = ".paging_pad {\n  padding: 0px 10px;\n}\n\n.paging_font {\n  font-size: 2rem;\n}\n"; });
+define('text!contact-edit.html', ['module'], function(module) { module.exports = "<template><require from=\"./contact-edit-styles.css\"></require><require from=\"./loading.html\"></require><require from=\"./dialog-info\"></require><loading disp-loading.two-way=\"dispLoading\"></loading><dialog-info view-model.ref=\"dlgerr\" cancel-hide=\"true\"></dialog-info><md-navbar><a href=\"#\" class=\"brand-logo left\"><span class=\"padl\">連絡先編集</span></a><ul class=\"hide-on-med-and-down right\"><li md-waves><a>About</a></li><li md-waves><a>Installation</a></li><li md-waves><a>Project Status</a></li></ul></md-navbar><div class=\"row\"><div class=\"col s12\"><md-input md-label=\"連絡先コード\" md-validate=\"false\" md-value.bind=\"contactCd\" md-readonly.bind=\"true\"><i md-prefix class=\"material-icons\">format_list_numbered</i></md-input><md-input md-label=\"連絡先名称\" md-validate=\"true\" md-value.bind=\"contactName & validate:rules\"><i md-prefix class=\"material-icons\">account_circle</i></md-input><md-input md-label=\"表示順\" md-validate=\"true\" md-value.bind=\"orderDisplay & validate:rules\"><i md-prefix class=\"material-icons\">sort</i></md-input><md-input md-label=\"備考\" md-value.bind=\"note\"><i md-prefix class=\"material-icons\">note</i></md-input></div></div><div class=\"row valign-base\"><div class=\"col s4\"><md-checkbox md-checked.bind=\"activeFlg\" change.delegate=\"clearFlgChangeDate()\">有効</md-checkbox></div><div class=\"col s8\"><input md-datepicker=\"container: body; value.two-way: flgChangeDate; options.bind: advancedOptions;\" md-datepicker.ref=\"datePicker\" type=\"date\" placeholder=\"無効化日\" disabled.bind=\"activeFlg\"></div></div><div class=\"row\"><div class=\"col s6\"><span>更新者：</span><span>${updateEmplyeeCD}</span></div><div class=\"col s6\"><span>更新日：</span><span>${updateDatetime}</span></div></div><div class=\"row center\"><div class=\"col s6\"><a md-button=\"floating: true; large: true; pulse.bind: pulse;\" md-waves=\"color: light; circle: true;\" route-href=\"route: contactList;\"><i class=\"large material-icons\">arrow_back</i></a></div><div class=\"col s6\"><a md-button=\"floating: true; large: true; pulse.bind: pulse;\" md-waves=\"color: light; circle: true;\" click.delegate=\"validateModel()\"><i class=\"large material-icons\">cloud_upload</i></a></div></div></template>"; });
 define('text!styles.css', ['module'], function(module) { module.exports = ".padl {\n  margin-left: 1rem;\n}\n"; });
-define('text!contact-list.html', ['module'], function(module) { module.exports = "<template><require from=\"./contact-list-styles.css\"></require><require from=\"./page-panel\"></require><require from=\"./loading.html\"></require><require from=\"./dialog-error\"></require><loading disp-loading.two-way=\"dispLoading\"></loading><dialog-error view-model.ref=\"dlgerr\"></dialog-error><md-navbar><a href=\"#\" class=\"brand-logo left\"><span class=\"padl\">連絡先一覧</span></a><ul class=\"right\"><li md-waves><a click.delegate=\"openSearchPanel()\">Search</a></li></ul><ul class=\"hide-on-med-and-down right\"><li md-waves><a>About</a></li><li md-waves><a>Installation</a></li><li md-waves><a>Project Status</a></li></ul></md-navbar><md-card class=\"${dispSearchPanel ? '' : 'hide'}\"><div class=\"row\"><div class=\"col s12\"><md-input md-label=\"連絡先名称\" md-value.bind=\"srchContactName\"></md-input></div></div><div class=\"row\"><div class=\"col s6\">Active Only:<md-switch md-checked.bind=\"srchActiveFlg\"></md-switch></div><div class=\"col s6 right_adjust\"><a md-button=\"floating: true; large: true;\" md-waves=\"color: light; circle: true;\" click.delegate=\"dispSearchPanel = false\"><i class=\"large material-icons\">arrow_back</i> </a>&nbsp;&nbsp;&nbsp;&nbsp; <a md-button=\"floating: true; large: true;\" md-waves=\"color: light; circle: true;\" click.delegate=\"changeSearchCondition()\"><i class=\"large material-icons\">search</i></a></div></div></md-card><div class=\"row\"><div class=\"col s12\"><table class=\"striped\"><thead><th class=\"right touchTarget\" click.delegate=\"sortClick($event)\"><i name=\"MCNTCT_ContactCD\" class=\"tiny material-icons\">sort</i>Code</th><th class=\"center touchTarget\" click.delegate=\"sortClick($event)\"><i name=\"MCNTCT_ContactName\" class=\"tiny material-icons\">sort</i>Name</th><th class=\"landOnly right touchTarget\" click.delegate=\"sortClick($event)\"><i name=\"MCNTCT_OrderDisplay\" class=\"tiny material-icons\">sort</i>Order</th><th class=\"landOnly center touchTarget\" click.delegate=\"sortClick($event)\"><i name=\"MCNTCT_UpdateEmployeeCD\" class=\"tiny material-icons\">sort</i>Updater</th><th class=\"landOnly center touchTarget\" click.delegate=\"sortClick($event)\"><i name=\"MCNTCT_UpdateDatetime\" class=\"tiny material-icons\">sort</i>Updated</th></thead><tbody><tr repeat.for=\"contact of contacts\" class=\"${contact.selected ? 'blue darken-2 white-text touchTarget' : 'touchTarget'}\" click.delegate=\"onClickRow($index)\"><td class=\"right\">${contact.MCNTCT_ContactCD}</td><td class=\"center\">${contact.MCNTCT_ContactName}</td><td class=\"landOnly right\">${contact.MCNTCT_OrderDisplay}</td><td class=\"landOnly center\">${contact.MCNTCT_UpdateEmployeeCD}</td><td class=\"landOnly center\">${contact.displayUpdated}</td></tr></tbody></table></div></div><div class=\"row valign-wrapper\"><div class=\"col s12\"><page-panel active-page.bind=\"activePage\" max-page.bind=\"maxPage\" change-page.call=\"changePageByPagingPanel()\"></page-panel></div></div><div class=\"row\"><div class=\"col s12\"><div class=\"fixed-action-btn click-to-toggle\" style=\"bottom:23px;right:12px\"><a md-button=\"floating: true; large: true;\" md-waves=\"color: light; circle: true;\"><i class=\"large material-icons\">mode_edit</i></a><ul><li><a md-button=\"floating: true; large: true;\" md-waves=\"color: light; circle: true;\" class=\"green\" click.delegate=\"onAdd()\"><i class=\"material-icons\">add</i></a></li><li><a md-button=\"floating: true; disabled.bind: selectedIdx < 0; large: true;\" md-waves=\"color: light; circle: true;\" class=\"blue\" click.delegate=\"onEdit()\"><i class=\"material-icons\">edit</i></a></li><li><a md-button=\"floating: true; disabled.bind: selectedIdx < 0; large: true;\" md-waves=\"color: light; circle: true;\" class=\"red\" click.delegate=\"openDelModal()\"><i class=\"material-icons\">delete</i></a></li></ul></div></div></div><div id=\"delmdl\" md-modal md-modal.ref=\"delmdl\"><div class=\"modal-content\"><h5 class=\"landOnly\">削除確認</h5><p>選択した以下の連絡先を削除しますか？<br> ${contacts[selectedIdx].MCNTCT_ContactCD} : ${contacts[selectedIdx].MCNTCT_ContactName} </p></div><div class=\"modal-footer\"><a click.delegate=\"onDelAgree()\" md-button md-waves=\"color: accent;\" class=\"modal-action modal-close\">OK</a> <a md-button md-waves=\"color: accent;\" class=\"modal-action modal-close\">Cancel</a></div></div></template>"; });
-define('text!contact-new.html', ['module'], function(module) { module.exports = "<template><require from=\"./loading.html\"></require><require from=\"./dialog-error\"></require><loading disp-loading.two-way=\"dispLoading\"></loading><dialog-error view-model.ref=\"dlgerr\"></dialog-error><md-navbar><a href=\"#\" class=\"brand-logo left\"><span class=\"padl\">連絡先登録</span></a><ul class=\"hide-on-med-and-down right\"><li md-waves><a>About</a></li><li md-waves><a>Installation</a></li><li md-waves><a>Project Status</a></li></ul></md-navbar><div class=\"row\"><div class=\"col s12\"><md-input md-label=\"連絡先名称\" md-validate=\"true\" md-value.bind=\"contactName & validate:rules\"><i md-prefix class=\"material-icons\">account_circle</i></md-input><md-input md-label=\"表示順\" md-validate=\"true\" md-value.bind=\"orderDisplay & validate:rules\"><i md-prefix class=\"material-icons\">sort</i></md-input><md-input md-label=\"備考\" md-value.bind=\"note\"><i md-prefix class=\"material-icons\">note</i></md-input><md-checkbox md-checked.bind=\"activeFlg\">有効</md-checkbox></div></div><div class=\"row center\"><div class=\"col s6\"><a md-button=\"floating: true; large: true; pulse.bind: pulse;\" md-waves=\"color: light; circle: true;\" route-href=\"route: contactList;\"><i class=\"large material-icons\">arrow_back</i></a></div><div class=\"col s6\"><a md-button=\"floating: true; large: true; pulse.bind: pulse;\" md-waves=\"color: light; circle: true;\" click.delegate=\"validateModel()\"><i class=\"large material-icons\">cloud_upload</i></a></div></div></template>"; });
+define('text!contact-list.html', ['module'], function(module) { module.exports = "<template><require from=\"./contact-list-styles.css\"></require><require from=\"./page-panel\"></require><require from=\"./loading.html\"></require><require from=\"./dialog-info\"></require><loading disp-loading.two-way=\"dispLoading\"></loading><dialog-info view-model.ref=\"dlgerr\" cancel-hide=\"true\"></dialog-info><dialog-info view-model.ref=\"dlginf\" ok-click.call=\"onDelAgree()\"></dialog-info><md-navbar><a href=\"#\" class=\"brand-logo left\"><span class=\"padl\">連絡先一覧</span></a><ul class=\"right\"><li md-waves><a click.delegate=\"openSearchPanel()\">Search</a></li></ul><ul class=\"hide-on-med-and-down right\"><li md-waves><a>About</a></li><li md-waves><a>Installation</a></li><li md-waves><a>Project Status</a></li></ul></md-navbar><md-card class=\"${dispSearchPanel ? '' : 'hide'}\"><div class=\"row\"><div class=\"col s12\"><md-input md-label=\"連絡先名称\" md-value.bind=\"srchContactName\"></md-input></div></div><div class=\"row\"><div class=\"col s6\">Active Only:<md-switch md-checked.bind=\"srchActiveFlg\"></md-switch></div><div class=\"col s6 right_adjust\"><a md-button=\"floating: true; large: true;\" md-waves=\"color: light; circle: true;\" click.delegate=\"dispSearchPanel = false\"><i class=\"large material-icons\">arrow_back</i> </a>&nbsp;&nbsp;&nbsp;&nbsp; <a md-button=\"floating: true; large: true;\" md-waves=\"color: light; circle: true;\" click.delegate=\"changeSearchCondition()\"><i class=\"large material-icons\">search</i></a></div></div></md-card><div class=\"row\"><div class=\"col s12\"><table class=\"striped\"><thead><th class=\"right touchTarget\" click.delegate=\"sortClick($event)\"><i name=\"MCNTCT_ContactCD\" class=\"tiny material-icons\">sort</i>Code</th><th class=\"center touchTarget\" click.delegate=\"sortClick($event)\"><i name=\"MCNTCT_ContactName\" class=\"tiny material-icons\">sort</i>Name</th><th class=\"landOnly right touchTarget\" click.delegate=\"sortClick($event)\"><i name=\"MCNTCT_OrderDisplay\" class=\"tiny material-icons\">sort</i>Order</th><th class=\"landOnly center touchTarget\" click.delegate=\"sortClick($event)\"><i name=\"MCNTCT_UpdateEmployeeCD\" class=\"tiny material-icons\">sort</i>Updater</th><th class=\"landOnly center touchTarget\" click.delegate=\"sortClick($event)\"><i name=\"MCNTCT_UpdateDatetime\" class=\"tiny material-icons\">sort</i>Updated</th></thead><tbody><tr repeat.for=\"contact of contacts\" class=\"${contact.selected ? 'blue darken-2 white-text touchTarget' : 'touchTarget'}\" click.delegate=\"onClickRow($index)\"><td class=\"right\">${contact.MCNTCT_ContactCD}</td><td class=\"center\">${contact.MCNTCT_ContactName}</td><td class=\"landOnly right\">${contact.MCNTCT_OrderDisplay}</td><td class=\"landOnly center\">${contact.MCNTCT_UpdateEmployeeCD}</td><td class=\"landOnly center\">${contact.displayUpdated}</td></tr></tbody></table></div></div><div class=\"row valign-wrapper\"><div class=\"col s12\"><page-panel active-page.bind=\"activePage\" max-page.bind=\"maxPage\" change-page.call=\"changePageByPagingPanel()\"></page-panel></div></div><div class=\"row\"><div class=\"col s12\"><div class=\"fixed-action-btn click-to-toggle\" style=\"bottom:23px;right:12px\"><a md-button=\"floating: true; large: true;\" md-waves=\"color: light; circle: true;\"><i class=\"large material-icons\">mode_edit</i></a><ul><li><a md-button=\"floating: true; large: true;\" md-waves=\"color: light; circle: true;\" class=\"green\" click.delegate=\"onAdd()\"><i class=\"material-icons\">add</i></a></li><li><a md-button=\"floating: true; disabled.bind: selectedIdx < 0; large: true;\" md-waves=\"color: light; circle: true;\" class=\"blue\" click.delegate=\"onEdit()\"><i class=\"material-icons\">edit</i></a></li><li><a md-button=\"floating: true; disabled.bind: selectedIdx < 0; large: true;\" md-waves=\"color: light; circle: true;\" class=\"red\" click.delegate=\"openDelModal()\"><i class=\"material-icons\">delete</i></a></li></ul></div></div></div></template>"; });
+define('text!contact-new.html', ['module'], function(module) { module.exports = "<template><require from=\"./loading.html\"></require><require from=\"./dialog-info\"></require><loading disp-loading.two-way=\"dispLoading\"></loading><dialog-info view-model.ref=\"dlgerr\" cancel-hide=\"true\"></dialog-info><md-navbar><a href=\"#\" class=\"brand-logo left\"><span class=\"padl\">連絡先登録</span></a><ul class=\"hide-on-med-and-down right\"><li md-waves><a>About</a></li><li md-waves><a>Installation</a></li><li md-waves><a>Project Status</a></li></ul></md-navbar><div class=\"row\"><div class=\"col s12\"><md-input md-label=\"連絡先名称\" md-validate=\"true\" md-value.bind=\"contactName & validate:rules\"><i md-prefix class=\"material-icons\">account_circle</i></md-input><md-input md-label=\"表示順\" md-validate=\"true\" md-value.bind=\"orderDisplay & validate:rules\"><i md-prefix class=\"material-icons\">sort</i></md-input><md-input md-label=\"備考\" md-value.bind=\"note\"><i md-prefix class=\"material-icons\">note</i></md-input><md-checkbox md-checked.bind=\"activeFlg\">有効</md-checkbox></div></div><div class=\"row center\"><div class=\"col s6\"><a md-button=\"floating: true; large: true; pulse.bind: pulse;\" md-waves=\"color: light; circle: true;\" route-href=\"route: contactList;\"><i class=\"large material-icons\">arrow_back</i></a></div><div class=\"col s6\"><a md-button=\"floating: true; large: true; pulse.bind: pulse;\" md-waves=\"color: light; circle: true;\" click.delegate=\"validateModel()\"><i class=\"large material-icons\">cloud_upload</i></a></div></div></template>"; });
+define('text!dialog-error.html', ['module'], function(module) { module.exports = "<template><div id=\"mdlerr\" md-modal md-modal.ref=\"mdlerr\"><div class=\"modal-content\"><h5 class=\"landOnly\">エラー</h5><p>${mdlmessage}</p></div><div class=\"modal-footer\"><a md-button md-waves=\"color: accent;\" class=\"modal-action modal-close\">OK</a></div></div></template>"; });
+define('text!dialog-info.html', ['module'], function(module) { module.exports = "<template><div id=\"mdlinfo\" md-modal md-modal.ref=\"mdlinfo\"><div class=\"modal-content\"><h5>${title}</h5><p><span repeat.for=\"message of messages\"> ${message} <br class=\"${(messages.length - 1) === $index ? 'hide' : ''}\"></span></p></div><div class=\"modal-footer\"><a md-button md-waves=\"color: accent;\" class=\"${okHide ? 'hide' : 'modal-action modal-close'}\" click.delegate=\"onOK()\">OK </a><span>&nbsp;</span> <a md-button md-waves=\"color: accent;\" class=\"${cancelHide ? 'hide' : 'modal-action modal-close'}\" click.delegate=\"onCancel()\">Cancel</a></div></div></template>"; });
 define('text!loading.html', ['module'], function(module) { module.exports = "<template bindable=\"dispLoading\"><require from=\"./loading.css\"></require><div class=\"${dispLoading ? 'loading valign-wrapper center-align' : 'hide'}\"><md-progress md-type=\"circular\" md-size=\"big\" md-color=\"blue\" class.bind=\"'progressIcon'\"></md-progress></div></template>"; });
 define('text!page-panel.html', ['module'], function(module) { module.exports = "<template><require from=\"./page-panel.css\"></require><md-card class=\"${pageSelector ? '' : 'hide'}\"><div style=\"text-align:center\"><span repeat.for=\"page of pages\"><a md-waves class=\"black-text paging_pad paging_font\" click.delegate=\"page.act(page.page, maxPage)\"> ${page.disp} </a></span></div></md-card><div style=\"text-align:center\"><a md-waves class=\"${activePage === 1 ? 'grey-text paging_pad' : 'black-text paging_pad'}\" click.delegate=\"onFirstPage()\"><i class=\"small material-icons\">first_page</i> </a><a md-waves class=\"${activePage === 1 ? 'grey-text paging_pad' : 'black-text paging_pad'}\" click.delegate=\"onPrevPage()\"><i class=\"small material-icons\">chevron_left</i> </a><a md-waves class=\"${maxPage > 1 ? 'black-text paging_pad' : 'grey-text paging_pad'}\" click.delegate=\"onPageSelect()\"><span class=\"paging_pad paging_font\">${activePage}</span></a><a md-waves class=\"${activePage === maxPage ? 'grey-text paging_pad' : 'black-text paging_pad'}\" click.delegate=\"onNextPage()\"><i class=\"small material-icons\">chevron_right</i> </a><a md-waves class=\"${activePage === maxPage ? 'grey-text paging_pad' : 'black-text paging_pad'}\" click.delegate=\"onLastPage()\"><i class=\"small material-icons\">last_page</i></a></div></template>"; });
-define('text!dialog-error.html', ['module'], function(module) { module.exports = "<template><div id=\"mdlerr\" md-modal md-modal.ref=\"mdlerr\"><div class=\"modal-content\"><h5 class=\"landOnly\">エラー</h5><p>${mdlmessage}</p></div><div class=\"modal-footer\"><a md-button md-waves=\"color: accent;\" class=\"modal-action modal-close\">OK</a></div></div></template>"; });
 //# sourceMappingURL=app-bundle.js.map
